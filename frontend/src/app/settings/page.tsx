@@ -32,6 +32,7 @@ import {
 import { Logo } from "@/components/shared";
 import { AnimatedBackground } from "@/components/shared";
 import { useAuthContext } from "@/providers/auth-provider";
+import { useTheme } from "next-themes";
 
 type SettingsTab = "profile" | "appearance" | "notifications" | "security";
 
@@ -44,25 +45,25 @@ const tabs: { id: SettingsTab; label: string; icon: React.ElementType }[] = [
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState<SettingsTab>("profile");
-  const [theme, setTheme] = useState<"dark" | "light" | "system">("dark");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const { user } = useAuthContext();
+  const { theme, setTheme } = useTheme();
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white">
+    <div className="min-h-screen bg-background text-foreground">
       <AnimatedBackground variant="subtle" />
 
       {/* Header */}
-      <header className="relative z-10 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl">
+      <header className="relative z-10 border-b border-border bg-background/80 backdrop-blur-xl">
         <div className="max-w-5xl mx-auto px-6 py-4">
           <div className="flex items-center gap-4">
             <Link href="/dashboard">
-              <Button variant="ghost" size="icon" className="text-gray-400 hover:text-white">
+              <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                 <ArrowLeft className="w-5 h-5" />
               </Button>
             </Link>
             <Logo size="md" href="/dashboard" />
-            <span className="text-gray-500">/</span>
+            <span className="text-muted-foreground">/</span>
             <h1 className="text-lg font-medium">Settings</h1>
           </div>
         </div>
@@ -78,11 +79,10 @@ export default function SettingsPage() {
                 <button
                   key={tab.id}
                   onClick={() => setActiveTab(tab.id)}
-                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${
-                    activeTab === tab.id
-                      ? "bg-white/10 text-white"
-                      : "text-gray-400 hover:text-white hover:bg-white/5"
-                  }`}
+                  className={`w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm transition-colors ${activeTab === tab.id
+                    ? "bg-accent text-foreground"
+                    : "text-muted-foreground hover:text-foreground hover:bg-accent/50"
+                    }`}
                 >
                   <tab.icon className="w-4 h-4" />
                   {tab.label}
@@ -103,7 +103,7 @@ export default function SettingsPage() {
                 <ProfileSettings user={user} />
               )}
               {activeTab === "appearance" && (
-                <AppearanceSettings theme={theme} setTheme={setTheme} />
+                <AppearanceSettings theme={theme || "system"} setTheme={setTheme} />
               )}
               {activeTab === "notifications" && (
                 <NotificationSettings />
@@ -127,10 +127,10 @@ function ProfileSettings({ user }: { user: { name: string; email: string; avatar
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold mb-1">Profile</h2>
-        <p className="text-sm text-gray-400">Manage your public profile information</p>
+        <p className="text-sm text-muted-foreground">Manage your public profile information</p>
       </div>
 
-      <Separator className="bg-white/10" />
+      <Separator className="bg-border" />
 
       {/* Avatar section */}
       <div className="flex items-center gap-6">
@@ -141,10 +141,10 @@ function ProfileSettings({ user }: { user: { name: string; email: string; avatar
           </AvatarFallback>
         </Avatar>
         <div>
-          <Button variant="outline" size="sm" className="border-white/10 hover:bg-white/5">
+          <Button variant="outline" size="sm" className="border-border hover:bg-accent">
             Change avatar
           </Button>
-          <p className="text-xs text-gray-500 mt-2">JPG, PNG, or GIF. Max 2MB.</p>
+          <p className="text-xs text-muted-foreground mt-2">JPG, PNG, or GIF. Max 2MB.</p>
         </div>
       </div>
 
@@ -155,7 +155,7 @@ function ProfileSettings({ user }: { user: { name: string; email: string; avatar
           <Input
             id="name"
             defaultValue={user?.name || ""}
-            className="bg-white/5 border-white/10 focus:border-purple-500"
+            className="bg-input border-border focus:border-purple-500"
           />
         </div>
 
@@ -166,9 +166,9 @@ function ProfileSettings({ user }: { user: { name: string; email: string; avatar
             type="email"
             defaultValue={user?.email || ""}
             disabled
-            className="bg-white/5 border-white/10 text-gray-500"
+            className="bg-input border-border text-muted-foreground"
           />
-          <p className="text-xs text-gray-500">Email is managed through your OAuth provider</p>
+          <p className="text-xs text-muted-foreground">Email is managed through your OAuth provider</p>
         </div>
 
         <div className="space-y-2">
@@ -177,11 +177,11 @@ function ProfileSettings({ user }: { user: { name: string; email: string; avatar
             id="bio"
             rows={3}
             placeholder="Tell us about yourself..."
-            className="w-full px-3 py-2 bg-white/5 border border-white/10 rounded-md text-sm focus:outline-none focus:border-purple-500 transition-colors resize-none"
+            className="w-full px-3 py-2 bg-input border border-border rounded-md text-sm focus:outline-none focus:border-purple-500 transition-colors resize-none"
           />
         </div>
 
-        <Button className="bg-white text-black hover:bg-gray-200">
+        <Button className="bg-primary text-primary-foreground hover:bg-primary/90">
           Save changes
         </Button>
       </div>
@@ -193,8 +193,8 @@ function AppearanceSettings({
   theme,
   setTheme,
 }: {
-  theme: "dark" | "light" | "system";
-  setTheme: (theme: "dark" | "light" | "system") => void;
+  theme: string;
+  setTheme: (theme: string) => void;
 }) {
   const themes = [
     { id: "light" as const, label: "Light", icon: Sun },
@@ -206,10 +206,10 @@ function AppearanceSettings({
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold mb-1">Appearance</h2>
-        <p className="text-sm text-gray-400">Customize how SysDes looks on your device</p>
+        <p className="text-sm text-muted-foreground">Customize how SysDes looks on your device</p>
       </div>
 
-      <Separator className="bg-white/10" />
+      <Separator className="bg-border" />
 
       {/* Theme selector */}
       <div className="space-y-4">
@@ -219,15 +219,13 @@ function AppearanceSettings({
             <button
               key={t.id}
               onClick={() => setTheme(t.id)}
-              className={`relative p-4 rounded-lg border transition-all ${
-                theme === t.id
+              className={`relative p-4 rounded-lg border transition-all ${theme === t.id
                   ? "border-purple-500 bg-purple-500/10"
-                  : "border-white/10 hover:border-white/20 bg-white/[0.02]"
-              }`}
+                  : "border-border hover:border-border bg-card/50"
+                }`}
             >
-              <t.icon className={`w-5 h-5 mx-auto mb-2 ${
-                theme === t.id ? "text-purple-400" : "text-gray-400"
-              }`} />
+              <t.icon className={`w-5 h-5 mx-auto mb-2 ${theme === t.id ? "text-purple-400" : "text-muted-foreground"
+                }`} />
               <span className="text-sm">{t.label}</span>
               {theme === t.id && (
                 <Check className="absolute top-2 right-2 w-4 h-4 text-purple-400" />
@@ -235,8 +233,8 @@ function AppearanceSettings({
             </button>
           ))}
         </div>
-        <p className="text-xs text-gray-500">
-          Currently, only dark mode is available. Light mode coming soon!
+        <p className="text-xs text-muted-foreground">
+          Select your preferred theme. Light mode is now available!
         </p>
       </div>
     </div>
@@ -248,7 +246,7 @@ function NotificationSettings() {
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold mb-1">Notifications</h2>
-        <p className="text-sm text-gray-400">Configure how you receive notifications</p>
+        <p className="text-sm text-muted-foreground">Configure how you receive notifications</p>
       </div>
 
       <Separator className="bg-white/10" />
@@ -286,21 +284,19 @@ function NotificationToggle({
   const [checked, setChecked] = useState(defaultChecked);
 
   return (
-    <div className="flex items-center justify-between p-4 rounded-lg border border-white/5 bg-white/[0.02]">
+    <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card/50">
       <div>
         <p className="font-medium text-sm">{label}</p>
-        <p className="text-xs text-gray-500">{description}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
       </div>
       <button
         onClick={() => setChecked(!checked)}
-        className={`relative w-11 h-6 rounded-full transition-colors ${
-          checked ? "bg-purple-500" : "bg-white/10"
-        }`}
+        className={`relative w-11 h-6 rounded-full transition-colors ${checked ? "bg-purple-500" : "bg-muted"
+          }`}
       >
         <span
-          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${
-            checked ? "translate-x-5" : "translate-x-0"
-          }`}
+          className={`absolute top-1 left-1 w-4 h-4 rounded-full bg-white transition-transform ${checked ? "translate-x-5" : "translate-x-0"
+            }`}
         />
       </button>
     </div>
@@ -318,7 +314,7 @@ function SecuritySettings({
     <div className="space-y-8">
       <div>
         <h2 className="text-xl font-semibold mb-1">Security</h2>
-        <p className="text-sm text-gray-400">Manage your account security and data</p>
+        <p className="text-sm text-muted-foreground">Manage your account security and data</p>
       </div>
 
       <Separator className="bg-white/10" />
@@ -327,17 +323,17 @@ function SecuritySettings({
       <div className="space-y-4">
         <Label>Connected accounts</Label>
         <div className="space-y-3 max-w-md">
-          <div className="flex items-center justify-between p-4 rounded-lg border border-white/5 bg-white/[0.02]">
+          <div className="flex items-center justify-between p-4 rounded-lg border border-border bg-card/50">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-lg bg-[#24292e] flex items-center justify-center">
+              <div className="w-10 h-10 rounded-lg bg-muted flex items-center justify-center">
                 <Key className="w-5 h-5" />
               </div>
               <div>
                 <p className="font-medium text-sm">GitHub</p>
-                <p className="text-xs text-gray-500">Connected</p>
+                <p className="text-xs text-muted-foreground">Connected</p>
               </div>
             </div>
-            <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+            <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
               Disconnect
             </Button>
           </div>
@@ -364,10 +360,10 @@ function SecuritySettings({
                   Delete
                 </Button>
               </DialogTrigger>
-              <DialogContent className="bg-[#111111] border-white/10 text-white">
+              <DialogContent className="bg-card border-border text-foreground">
                 <DialogHeader>
                   <DialogTitle>Delete account</DialogTitle>
-                  <DialogDescription className="text-gray-400">
+                  <DialogDescription className="text-muted-foreground">
                     Are you sure you want to delete your account? This will permanently remove all your
                     projects, designs, and data. This action cannot be undone.
                   </DialogDescription>
@@ -376,7 +372,7 @@ function SecuritySettings({
                   <Button
                     variant="ghost"
                     onClick={() => setIsDeleteDialogOpen(false)}
-                    className="text-gray-400 hover:text-white"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     Cancel
                   </Button>

@@ -5,8 +5,30 @@
 "use client";
 
 import React, { useMemo } from "react";
+import { useTheme } from "next-themes";
 import type { Shape, RectangleShape, EllipseShape, LineShape, ArrowShape, TextShape, FreedrawShape } from "@/lib/canvas";
 import { roughRectangle, roughEllipse, roughLine, roughArrow, roughFreedraw, generateHachureFill, generateCrossHatchFill } from "./rough";
+
+// Helper function to swap white/black based on theme
+function getThemeAwareColor(color: string, isDark: boolean): string {
+  const normalizedColor = color.toLowerCase().trim();
+
+  // In light mode: white strokes should appear as black
+  if (!isDark) {
+    if (normalizedColor === "#ffffff" || normalizedColor === "#fff" || normalizedColor === "white") {
+      return "#1e1e1e";
+    }
+  }
+
+  // In dark mode: black strokes should appear as white
+  if (isDark) {
+    if (normalizedColor === "#000000" || normalizedColor === "#000" || normalizedColor === "black" || normalizedColor === "#1e1e1e") {
+      return "#ffffff";
+    }
+  }
+
+  return color;
+}
 
 interface ShapeRendererProps {
   shape: Shape;
@@ -18,6 +40,16 @@ export const ShapeRenderer = React.memo(function ShapeRenderer({ shape, isSelect
   // _isSelected and _isHovered can be used for visual feedback (outline, glow, etc.)
   void _isSelected;
   void _isHovered;
+
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+
+  // Get theme-aware stroke color
+  const themeAwareStrokeColor = useMemo(() =>
+    getThemeAwareColor(shape.strokeColor, isDark),
+    [shape.strokeColor, isDark]
+  );
+
   const strokeDasharray = useMemo(() => {
     switch (shape.strokeStyle) {
       case "dashed": return "8,4";
@@ -27,7 +59,7 @@ export const ShapeRenderer = React.memo(function ShapeRenderer({ shape, isSelect
   }, [shape.strokeStyle]);
 
   const commonProps = {
-    stroke: shape.strokeColor,
+    stroke: themeAwareStrokeColor,
     strokeWidth: shape.strokeWidth,
     strokeDasharray,
     fill: shape.fillStyle === "none" ? "transparent" : shape.fillColor,
@@ -77,7 +109,7 @@ function RectangleRenderer({ shape, stroke, strokeWidth, strokeDasharray, fill, 
 
   const fillPath = useMemo(() => {
     if (shape.fillStyle === "none" || shape.fillStyle === "solid") return null;
-    
+
     const bounds = { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
     const options = { roughness: shape.roughness, seed: shape.seed, bowing: 1, strokeIterations: 2 };
     if (shape.fillStyle === "hachure") {
@@ -157,6 +189,7 @@ function EllipseRenderer({ shape, stroke, strokeWidth, strokeDasharray, fill, op
   const cy = shape.y + shape.height / 2;
   const rx = shape.width / 2;
   const ry = shape.height / 2;
+  const clipPathId = `ellipse-fill-clip-${shape.id}`;
 
   const strokePath = useMemo(() => {
     const options = { roughness: shape.roughness, seed: shape.seed, bowing: 1, strokeIterations: 2 };
@@ -165,7 +198,7 @@ function EllipseRenderer({ shape, stroke, strokeWidth, strokeDasharray, fill, op
 
   const fillPath = useMemo(() => {
     if (shape.fillStyle === "none" || shape.fillStyle === "solid") return null;
-    
+
     const bounds = { x: shape.x, y: shape.y, width: shape.width, height: shape.height };
     const options = { roughness: shape.roughness, seed: shape.seed, bowing: 1, strokeIterations: 2 };
     if (shape.fillStyle === "hachure") {
@@ -179,12 +212,18 @@ function EllipseRenderer({ shape, stroke, strokeWidth, strokeDasharray, fill, op
 
   return (
     <g opacity={opacity}>
+      {/* Clip path for ellipse fill pattern */}
+      <defs>
+        <clipPath id={clipPathId}>
+          <ellipse cx={cx} cy={cy} rx={rx} ry={ry} />
+        </clipPath>
+      </defs>
       {/* Fill */}
       {shape.fillStyle === "solid" && (
         <ellipse cx={cx} cy={cy} rx={rx} ry={ry} fill={fill} stroke="none" />
       )}
       {fillPath && (
-        <path d={fillPath} stroke={fill} strokeWidth={1} fill="none" />
+        <path d={fillPath} stroke={fill} strokeWidth={1} fill="none" clipPath={`url(#${clipPathId})`} />
       )}
       {/* Stroke */}
       <path
@@ -283,12 +322,12 @@ function ArrowRenderer({ shape, stroke, strokeWidth, strokeDasharray, opacity }:
       const lastIdx = shape.points.length - 1;
       const p1 = shape.points[lastIdx - 1];
       const p2 = shape.points[lastIdx];
-      
+
       const x1 = shape.x + p1.x;
       const y1 = shape.y + p1.y;
       const x2 = shape.x + p2.x;
       const y2 = shape.y + p2.y;
-      
+
       const { arrowHead } = roughArrow(x1, y1, x2, y2, 10 + strokeWidth * 2, options);
       arrowHeadPath = arrowHead;
     }
@@ -333,21 +372,21 @@ interface TextRendererProps {
 
 function TextRenderer({ shape, stroke, opacity }: TextRendererProps) {
   const textAnchor = shape.textAlign === "left" ? "start" : shape.textAlign === "right" ? "end" : "middle";
-  
+
   // Split text into lines
   const lines = shape.text.split("\n");
   const lineHeight = shape.lineHeight || 1.25;
   const lineSpacing = shape.fontSize * lineHeight;
-  
+
   // Calculate starting position based on alignment
   let baseX = shape.x;
   if (shape.textAlign === "center") baseX += shape.width / 2;
   else if (shape.textAlign === "right") baseX += shape.width;
-  
+
   // Calculate vertical position
   const totalTextHeight = lines.length * lineSpacing;
   let startY = shape.y;
-  
+
   if (shape.verticalAlign === "middle") {
     startY = shape.y + (shape.height - totalTextHeight) / 2 + shape.fontSize * 0.8;
   } else if (shape.verticalAlign === "bottom") {
@@ -408,12 +447,12 @@ interface FreedrawRendererProps {
 function FreedrawRenderer({ shape, stroke, strokeWidth, opacity }: FreedrawRendererProps) {
   const pathData = useMemo(() => {
     if (shape.points.length < 2) return "";
-    
+
     const absolutePoints = shape.points.map((p) => ({
       x: shape.x + p.x,
       y: shape.y + p.y,
     }));
-    
+
     const options = { roughness: shape.roughness, seed: shape.seed, bowing: 1, strokeIterations: 1 };
     return roughFreedraw(absolutePoints, options);
   }, [shape.x, shape.y, shape.points, shape.roughness, shape.seed]);

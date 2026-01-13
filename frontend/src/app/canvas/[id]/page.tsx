@@ -54,7 +54,7 @@ export default function CanvasPage() {
   useEffect(() => {
     async function loadProjectAndWhiteboard() {
       if (!projectId) return;
-      
+
       // Wait for auth to finish loading
       if (authLoading) return;
 
@@ -68,29 +68,29 @@ export default function CanvasPage() {
         // Load project
         const data = await api.getProject(projectId);
         setProject(data);
-        
+
         // Load whiteboard (creates default if none exists)
         try {
           const wb = await api.getDefaultWhiteboard(projectId);
           setWhiteboard(wb);
-          
+
           // Load canvas data from whiteboard
           if (wb.data && typeof wb.data === 'object') {
             const canvasData = wb.data as CanvasDocument;
             const store = useCanvasStore.getState();
-            
+
             // Load shapes if available
             if (canvasData.shapes && Array.isArray(canvasData.shapes)) {
               // Type assertion via unknown for JSON data from backend
               store.loadDocument(canvasData.shapes as unknown as Shape[]);
             }
-            
+
             // Load viewport if available
             if (canvasData.viewport) {
               store.setScroll(canvasData.viewport.scrollX || 0, canvasData.viewport.scrollY || 0);
               store.setZoom(canvasData.viewport.zoom || 1);
             }
-            
+
             // Load style if available
             if (canvasData.style) {
               // Type assertion for JSON data
@@ -101,7 +101,7 @@ export default function CanvasPage() {
           // Whiteboard failed to load, but project loaded - continue with empty canvas
           console.warn("Failed to load whiteboard, starting with empty canvas:", wbError);
         }
-        
+
         setError(null);
       } catch (err) {
         console.error("Failed to load project:", err);
@@ -129,7 +129,7 @@ export default function CanvasPage() {
 
     try {
       const { shapes, scrollX, scrollY, zoom, currentStyle } = useCanvasStore.getState().canvas;
-      
+
       // Create canvas document
       const canvasData: CanvasDocument = {
         version: 1,
@@ -139,14 +139,14 @@ export default function CanvasPage() {
         createdAt: whiteboard?.data ? (whiteboard.data as CanvasDocument).createdAt || Date.now() : Date.now(),
         updatedAt: Date.now(),
       };
-      
+
       // Save canvas data to backend
       const updatedWhiteboard = await api.saveCanvas(project.id, canvasData);
       setWhiteboard(updatedWhiteboard);
-      
+
       setSaveStatus('saved');
       console.log("Canvas saved:", { shapes: shapes.length, viewport: { scrollX, scrollY, zoom } });
-      
+
       // Reset save status after 2 seconds
       setTimeout(() => setSaveStatus('idle'), 2000);
     } catch (error) {
@@ -161,28 +161,28 @@ export default function CanvasPage() {
   // Auto-save when shapes change (debounced)
   useEffect(() => {
     if (!project || loading) return;
-    
+
     let timeoutId: NodeJS.Timeout | null = null;
     let lastShapeCount = useCanvasStore.getState().canvas.shapes.length;
-    
+
     // Subscribe to store changes
     const unsubscribe = useCanvasStore.subscribe((state) => {
       const currentShapeCount = state.canvas.shapes.length;
-      
+
       // Only auto-save if shapes have changed
       if (currentShapeCount !== lastShapeCount) {
         lastShapeCount = currentShapeCount;
-        
+
         // Clear previous timeout
         if (timeoutId) clearTimeout(timeoutId);
-        
+
         // Debounce auto-save by 3 seconds after last change
         timeoutId = setTimeout(() => {
           handleSave();
         }, 3000);
       }
     });
-    
+
     return () => {
       unsubscribe();
       if (timeoutId) clearTimeout(timeoutId);
@@ -204,7 +204,7 @@ export default function CanvasPage() {
 
   if (loading || authLoading) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
       </div>
     );
@@ -212,7 +212,7 @@ export default function CanvasPage() {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
+      <div className="min-h-screen bg-background flex items-center justify-center">
         <div className="text-center">
           <p className="text-red-400 mb-4">{error}</p>
           <Link href="/dashboard">
@@ -224,23 +224,23 @@ export default function CanvasPage() {
   }
 
   return (
-    <div className="h-screen w-screen overflow-hidden bg-[#0a0a0a] flex flex-col">
+    <div className="h-screen w-screen overflow-hidden bg-background flex flex-col">
       {/* Header */}
-      <header className="h-14 border-b border-zinc-800 bg-zinc-900/80 backdrop-blur flex items-center justify-between px-4 shrink-0">
+      <header className="h-14 border-b border-border bg-card/80 backdrop-blur flex items-center justify-between px-4 shrink-0">
         <div className="flex items-center gap-4">
-          <Link href="/dashboard" className="text-zinc-400 hover:text-white transition-colors">
+          <Link href="/dashboard" className="text-muted-foreground hover:text-foreground transition-colors">
             <ArrowLeft size={20} />
           </Link>
           <Logo size="sm" />
-          <div className="h-6 w-px bg-zinc-700" />
-          <span className="text-white font-medium">{project?.name || "Untitled"}</span>
+          <div className="h-6 w-px bg-border" />
+          <span className="text-foreground font-medium">{project?.name || "Untitled"}</span>
         </div>
 
         <div className="flex items-center gap-2">
           <Button
             variant="ghost"
             size="sm"
-            className="text-zinc-400 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
             onClick={() => setShowAISidebar(!showAISidebar)}
           >
             <Sparkles size={18} className="mr-2" />
@@ -249,26 +249,25 @@ export default function CanvasPage() {
           <Button
             variant="ghost"
             size="sm"
-            className="text-zinc-400 hover:text-white"
+            className="text-muted-foreground hover:text-foreground"
             onClick={() => setShowStylePanel(!showStylePanel)}
           >
             <Settings size={18} className="mr-2" />
             Style
           </Button>
-          <div className="h-6 w-px bg-zinc-700" />
-          <Button variant="ghost" size="sm" className="text-zinc-400 hover:text-white">
+          <div className="h-6 w-px bg-border" />
+          <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
             <Share2 size={18} className="mr-2" />
             Share
           </Button>
           <Button
             size="sm"
-            className={`min-w-[100px] transition-all ${
-              saveStatus === 'saved' 
-                ? 'bg-green-600 hover:bg-green-700' 
-                : saveStatus === 'error'
+            className={`min-w-[100px] transition-all ${saveStatus === 'saved'
+              ? 'bg-green-600 hover:bg-green-700'
+              : saveStatus === 'error'
                 ? 'bg-red-600 hover:bg-red-700'
                 : 'bg-blue-600 hover:bg-blue-700'
-            } text-white`}
+              } text-white`}
             onClick={handleSave}
             disabled={saving}
           >
@@ -319,29 +318,28 @@ export default function CanvasPage() {
 
         {/* AI Sidebar */}
         {showAISidebar && (
-          <div className="w-80 border-l border-zinc-800 bg-zinc-900/95 backdrop-blur overflow-hidden flex flex-col">
-            <div className="p-4 border-b border-zinc-800 flex items-center justify-between">
+          <div className="w-80 border-l border-border bg-card/95 backdrop-blur overflow-hidden flex flex-col">
+            <div className="p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-400" />
-                <h2 className="font-semibold text-white">AI Suggestions</h2>
+                <h2 className="font-semibold text-foreground">AI Suggestions</h2>
               </div>
-              <button onClick={() => setShowAISidebar(false)} className="text-zinc-400 hover:text-white">
+              <button onClick={() => setShowAISidebar(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={18} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-4 space-y-3">
               {suggestions.map((s) => (
-                <div key={s.id} className="p-3 bg-zinc-800/50 rounded-lg border border-zinc-700">
+                <div key={s.id} className="p-3 bg-muted/50 rounded-lg border border-border">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className={`text-xs px-2 py-0.5 rounded ${
-                      s.priority === "high" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"
-                    }`}>
+                    <span className={`text-xs px-2 py-0.5 rounded ${s.priority === "high" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"
+                      }`}>
                       {s.priority}
                     </span>
-                    <span className="text-xs text-zinc-500">{s.type}</span>
+                    <span className="text-xs text-muted-foreground">{s.type}</span>
                   </div>
-                  <h3 className="text-sm font-medium text-white mb-1">{s.title}</h3>
-                  <p className="text-xs text-zinc-400">{s.description}</p>
+                  <h3 className="text-sm font-medium text-foreground mb-1">{s.title}</h3>
+                  <p className="text-xs text-muted-foreground">{s.description}</p>
                 </div>
               ))}
             </div>

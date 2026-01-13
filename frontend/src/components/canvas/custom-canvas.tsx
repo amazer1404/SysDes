@@ -7,6 +7,7 @@
 
 import React, { useRef, useCallback, useEffect, useState, memo, useMemo } from "react";
 import throttle from "lodash.throttle";
+import { useTheme } from "next-themes";
 import type { Point, ResizeHandle, Shape, Bounds, TextShape } from "@/lib/canvas";
 import { CANVAS_CONFIG } from "@/lib/canvas";
 import { useCanvasStore } from "./store";
@@ -43,19 +44,19 @@ function measureText(
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) return { width: 100, height: fontSize * lineHeight };
-  
+
   ctx.font = `${fontSize}px ${fontFamily}`;
-  
+
   const lines = text.split("\n");
   let maxWidth = 0;
-  
+
   for (const line of lines) {
     const metrics = ctx.measureText(line || " ");
     maxWidth = Math.max(maxWidth, metrics.width);
   }
-  
+
   const height = lines.length * fontSize * lineHeight;
-  
+
   return {
     width: Math.max(maxWidth + 4, 100), // min width of 100
     height: Math.max(height, fontSize * lineHeight),
@@ -122,7 +123,7 @@ const TextEditor = memo(function TextEditor({
   // Calculate screen position - offset slightly for visibility
   const screenX = (shape.x + scrollX) * zoom;
   const screenY = (shape.y + scrollY) * zoom - 4; // Slight offset above
-  
+
   const finishEditing = useCallback(() => {
     if (hasFinished.current) return;
     hasFinished.current = true;
@@ -132,14 +133,14 @@ const TextEditor = memo(function TextEditor({
 
   const handleKeyDown = (e: React.KeyboardEvent) => {
     e.stopPropagation();
-    
+
     // Escape or Tab to finish editing (save changes)
     if (e.key === "Escape" || e.key === "Tab") {
       e.preventDefault();
       finishEditing();
       return;
     }
-    
+
     // Shift+Enter for new line (Enter alone also works naturally in textarea)
   };
 
@@ -247,7 +248,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
   const canvasRef = useRef<HTMLDivElement>(null);
   const svgRef = useRef<SVGSVGElement>(null);
   const [cursor, setCursor] = useState("default");
-  
+
   // Local state for tracking active interactions (bypasses React state for performance)
   const localStateRef = useRef({
     isDragging: false,
@@ -278,6 +279,12 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
 
   // Get store functions once
   const storeActions = useMemo(() => useCanvasStore.getState(), []);
+
+  // Theme-aware colors
+  const { resolvedTheme } = useTheme();
+  const isDark = resolvedTheme === "dark";
+  const canvasBackground = isDark ? "#121212" : "#fafafa";
+  const gridDotColor = isDark ? "#3d3d3d" : "#d4d4d4";
 
   // ============================================
   // Coordinate Transform
@@ -383,12 +390,12 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
     (e: React.PointerEvent) => {
       const state = useCanvasStore.getState();
       const { canvas, interaction } = state;
-      
+
       // Don't process pointer events when editing text (let the textarea handle it)
       if (interaction.mode === "editing-text") {
         return;
       }
-      
+
       // Capture pointer for smooth tracking
       (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
 
@@ -411,10 +418,10 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
             const handleRadius = CANVAS_CONFIG.HANDLE_SIZE / 2 / canvas.zoom;
             const startPoint = { x: selectedShape.x + points[0].x, y: selectedShape.y + points[0].y };
             const endPoint = { x: selectedShape.x + points[points.length - 1].x, y: selectedShape.y + points[points.length - 1].y };
-            
+
             const distToStart = Math.sqrt((point.x - startPoint.x) ** 2 + (point.y - startPoint.y) ** 2);
             const distToEnd = Math.sqrt((point.x - endPoint.x) ** 2 + (point.y - endPoint.y) ** 2);
-            
+
             if (distToStart <= handleRadius * 2) {
               // Start point handle - use "nw" as marker for start
               storeActions.startResizing("nw", point);
@@ -454,18 +461,18 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
       switch (canvas.activeTool) {
         case "select": {
           const clickedShape = storeActions.getShapeAtPoint(point);
-          
+
           // Check if clicking on any already selected shape (for dragging multiple)
-          const clickedOnSelection = canvas.selectedIds.length > 0 && 
-            canvas.shapes.some(s => 
+          const clickedOnSelection = canvas.selectedIds.length > 0 &&
+            canvas.shapes.some(s =>
               canvas.selectedIds.includes(s.id) && isPointInShapeForDrag(point, s)
             );
-          
+
           if (clickedOnSelection) {
             // Start dragging the entire selection
             storeActions.startDragging(point);
             localStateRef.current.isDragging = true;
-            
+
             const selected = state.canvas.shapes.filter(s => canvas.selectedIds.includes(s.id));
             localStateRef.current.draggedShapes.clear();
             selected.forEach(s => {
@@ -479,9 +486,9 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
             }
             storeActions.startDragging(point);
             localStateRef.current.isDragging = true;
-            
+
             // Initialize dragged shapes positions
-            const selected = state.canvas.shapes.filter(s => 
+            const selected = state.canvas.shapes.filter(s =>
               state.canvas.selectedIds.includes(s.id) || s.id === clickedShape.id
             );
             localStateRef.current.draggedShapes.clear();
@@ -513,7 +520,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
           if (clickedShape && canvas.selectedIds.includes(clickedShape.id) && canvas.activeTool !== "eraser") {
             storeActions.startDragging(point);
             localStateRef.current.isDragging = true;
-            
+
             const selected = state.canvas.shapes.filter(s => state.canvas.selectedIds.includes(s.id));
             localStateRef.current.draggedShapes.clear();
             selected.forEach(s => {
@@ -562,7 +569,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
   const handlePointerUp = useCallback(
     (e: React.PointerEvent) => {
       const local = localStateRef.current;
-      
+
       // Release pointer capture
       (e.target as HTMLElement).releasePointerCapture?.(e.pointerId);
 
@@ -616,14 +623,14 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
       if (e.ctrlKey || e.metaKey) {
         e.preventDefault();
         e.stopPropagation();
-        
+
         // Calculate zoom delta (scroll up = zoom in)
         const delta = e.deltaY < 0 ? CANVAS_CONFIG.ZOOM_STEP : -CANVAS_CONFIG.ZOOM_STEP;
         const newZoom = Math.max(
           CANVAS_CONFIG.MIN_ZOOM,
           Math.min(CANVAS_CONFIG.MAX_ZOOM, zoom + delta)
         );
-        
+
         if (newZoom === zoom) return;
 
         // Get mouse position relative to canvas element
@@ -653,7 +660,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
 
     // Use passive: false to allow preventDefault on wheel
     canvas.addEventListener("wheel", handleWheel, { passive: false });
-    
+
     return () => {
       canvas.removeEventListener("wheel", handleWheel);
     };
@@ -768,7 +775,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
   // Selection bounds - computed when needed
   const selectionBounds = useMemo(() => {
     if (selectedIds.length === 0) return null;
-    
+
     const selectedShapes = shapes.filter(s => selectedIds.includes(s.id));
     if (selectedShapes.length === 0) return null;
 
@@ -792,7 +799,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
 
   const renderDrawingPreview = () => {
     if (mode !== "drawing" || !storeDrawingShape) return null;
-    
+
     // For eraser, show a circle indicator instead of the shape
     if (storeDrawingShape.type === "eraser") {
       const eraserRadius = Math.max(currentStyle.strokeWidth * 3, 15);
@@ -813,7 +820,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
         </g>
       );
     }
-    
+
     return (
       <g opacity={0.8}>
         <ShapeRenderer shape={storeDrawingShape as import("@/lib/canvas").Shape} />
@@ -825,20 +832,20 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
     if (!selectionBounds) return null;
 
     const handleSize = CANVAS_CONFIG.HANDLE_SIZE;
-    
+
     // Check if the selected shape is a line or arrow
-    const selectedShape = selectedIds.length === 1 
+    const selectedShape = selectedIds.length === 1
       ? shapes.find(s => s.id === selectedIds[0])
       : null;
     const isLineOrArrow = selectedShape && (selectedShape.type === "line" || selectedShape.type === "arrow");
-    
+
     // For lines/arrows, show endpoint handles instead of corner handles
     if (isLineOrArrow && selectedShape && "points" in selectedShape) {
       const points = selectedShape.points;
       if (points.length >= 2) {
         const startPoint = { x: selectedShape.x + points[0].x, y: selectedShape.y + points[0].y };
         const endPoint = { x: selectedShape.x + points[points.length - 1].x, y: selectedShape.y + points[points.length - 1].y };
-        
+
         return (
           <g>
             {/* Start point handle */}
@@ -950,7 +957,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
       className={`relative w-full h-full overflow-hidden touch-none ${className}`}
       style={{
         cursor,
-        backgroundColor: "#121212",
+        backgroundColor: canvasBackground,
       }}
       onPointerDown={handlePointerDown}
       onPointerMove={handlePointerMove}
@@ -964,7 +971,7 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
         <div
           className="absolute inset-0 pointer-events-none"
           style={{
-            backgroundImage: `radial-gradient(circle, ${CANVAS_CONFIG.GRID_DOT_COLOR} ${CANVAS_CONFIG.GRID_DOT_SIZE}px, transparent ${CANVAS_CONFIG.GRID_DOT_SIZE}px)`,
+            backgroundImage: `radial-gradient(circle, ${gridDotColor} ${CANVAS_CONFIG.GRID_DOT_SIZE}px, transparent ${CANVAS_CONFIG.GRID_DOT_SIZE}px)`,
             backgroundSize: `${gridSize * zoom}px ${gridSize * zoom}px`,
             backgroundPosition: `${scrollX * zoom}px ${scrollY * zoom}px`,
           }}

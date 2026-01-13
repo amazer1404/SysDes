@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Plus, User, Settings, LogOut } from "lucide-react";
 import { useAuthContext } from "@/providers/auth-provider";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 interface NavbarProps {
   showNewProject?: boolean;
@@ -23,7 +24,7 @@ export function Navbar({ showNewProject = true, onNewProject }: NavbarProps) {
   const { user, isAuthenticated, logout } = useAuthContext();
 
   return (
-    <nav className="relative z-10 border-b border-white/5 bg-[#0a0a0a]/80 backdrop-blur-xl sticky top-0">
+    <nav className="relative z-10 border-b border-border bg-background/80 backdrop-blur-xl sticky top-0">
       <div className="max-w-7xl mx-auto px-6 py-3">
         <div className="flex items-center justify-between">
           <Logo size="md" href="/dashboard" />
@@ -32,13 +33,15 @@ export function Navbar({ showNewProject = true, onNewProject }: NavbarProps) {
             {showNewProject && (
               <Button
                 size="sm"
-                className="bg-white text-black hover:bg-gray-200"
+                className="bg-primary text-primary-foreground hover:bg-primary/90"
                 onClick={onNewProject}
               >
                 <Plus className="w-4 h-4 mr-2" />
                 New Project
               </Button>
             )}
+
+            <ThemeToggle />
 
             {isAuthenticated ? (
               <DropdownMenu>
@@ -54,26 +57,26 @@ export function Navbar({ showNewProject = true, onNewProject }: NavbarProps) {
                 </DropdownMenuTrigger>
                 <DropdownMenuContent
                   align="end"
-                  className="w-56 bg-[#111111] border-white/10 text-white"
+                  className="w-56 bg-popover border-border text-popover-foreground"
                 >
                   <div className="px-2 py-1.5">
                     <p className="text-sm font-medium">{user?.name || "User"}</p>
-                    <p className="text-xs text-gray-400">{user?.email}</p>
+                    <p className="text-xs text-muted-foreground">{user?.email}</p>
                   </div>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-border" />
                   <Link href="/settings">
-                    <DropdownMenuItem className="text-gray-300 focus:text-white focus:bg-white/5 cursor-pointer">
+                    <DropdownMenuItem className="text-popover-foreground/80 focus:text-popover-foreground focus:bg-accent cursor-pointer">
                       <User className="w-4 h-4 mr-2" />
                       Profile
                     </DropdownMenuItem>
                   </Link>
                   <Link href="/settings">
-                    <DropdownMenuItem className="text-gray-300 focus:text-white focus:bg-white/5 cursor-pointer">
+                    <DropdownMenuItem className="text-popover-foreground/80 focus:text-popover-foreground focus:bg-accent cursor-pointer">
                       <Settings className="w-4 h-4 mr-2" />
                       Settings
                     </DropdownMenuItem>
                   </Link>
-                  <DropdownMenuSeparator className="bg-white/10" />
+                  <DropdownMenuSeparator className="bg-border" />
                   <DropdownMenuItem
                     onClick={logout}
                     className="text-red-400 focus:text-red-400 focus:bg-red-500/10 cursor-pointer"
@@ -86,12 +89,12 @@ export function Navbar({ showNewProject = true, onNewProject }: NavbarProps) {
             ) : (
               <div className="flex items-center gap-3">
                 <Link href="/login">
-                  <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                  <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                     Sign in
                   </Button>
                 </Link>
                 <Link href="/login">
-                  <Button size="sm" className="bg-white text-black hover:bg-gray-200">
+                  <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                     Get Started
                   </Button>
                 </Link>
@@ -103,3 +106,4 @@ export function Navbar({ showNewProject = true, onNewProject }: NavbarProps) {
     </nav>
   );
 }
+

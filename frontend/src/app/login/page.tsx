@@ -21,7 +21,7 @@ export default function LoginPage() {
   }, [isAuthenticated, isLoading, router]);
 
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white flex">
+    <div className="min-h-screen bg-background text-foreground flex">
       {/* Animated background */}
       <div className="fixed inset-0 z-0">
         <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse-glow" />
@@ -29,7 +29,7 @@ export default function LoginPage() {
       </div>
 
       {/* Left side - Branding */}
-      <div className="hidden lg:flex flex-1 relative z-10 flex-col justify-between p-12 border-r border-white/5">
+      <div className="hidden lg:flex flex-1 relative z-10 flex-col justify-between p-12 border-r border-border">
         <Link href="/" className="flex items-center gap-2">
           <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center">
             <Layers className="w-5 h-5 text-white" />
@@ -38,13 +38,13 @@ export default function LoginPage() {
         </Link>
 
         <div>
-          <motion.blockquote 
+          <motion.blockquote
             className="text-2xl font-medium leading-relaxed mb-6"
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
           >
-            &quot;SysDes transformed how I approach system design. 
+            &quot;SysDes transformed how I approach system design.
             What used to take hours now takes minutes.&quot;
           </motion.blockquote>
           <motion.div
@@ -52,17 +52,17 @@ export default function LoginPage() {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.4 }}
           >
-            <p className="text-gray-400">— A Happy Developer</p>
+            <p className="text-muted-foreground">— A Happy Developer</p>
           </motion.div>
         </div>
 
-        <p className="text-sm text-gray-600">
+        <p className="text-sm text-muted-foreground/60">
         </p>
       </div>
 
       {/* Right side - Login form */}
       <div className="flex-1 flex items-center justify-center p-8 relative z-10">
-        <motion.div 
+        <motion.div
           className="w-full max-w-md"
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -78,9 +78,9 @@ export default function LoginPage() {
           </div>
 
           {/* Back link */}
-          <Link 
-            href="/" 
-            className="inline-flex items-center gap-2 text-sm text-gray-400 hover:text-white transition-colors mb-8"
+          <Link
+            href="/"
+            className="inline-flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors mb-8"
           >
             <ArrowLeft className="w-4 h-4" />
             Back to home
@@ -89,25 +89,25 @@ export default function LoginPage() {
           {/* Header */}
           <div className="mb-8">
             <h1 className="text-3xl font-bold mb-2">Welcome back</h1>
-            <p className="text-gray-400">
+            <p className="text-muted-foreground">
               Sign in to continue to SysDes
             </p>
           </div>
 
           {/* OAuth Buttons */}
           <div className="space-y-3">
-            <Button 
+            <Button
               onClick={loginWithGitHub}
-              className="w-full h-12 bg-white text-black hover:bg-gray-200 text-base font-medium"
+              className="w-full h-12 bg-primary text-primary-foreground hover:bg-primary/90 text-base font-medium"
             >
               <Github className="w-5 h-5 mr-3" />
               Continue with GitHub
             </Button>
 
-            <Button 
+            <Button
               onClick={loginWithGoogle}
               variant="outline"
-              className="w-full h-12 border-white/10 hover:bg-white/5 text-base font-medium"
+              className="w-full h-12 border-border hover:bg-accent text-base font-medium"
             >
               <Chrome className="w-5 h-5 mr-3" />
               Continue with Google
@@ -116,30 +116,30 @@ export default function LoginPage() {
 
           {/* Divider */}
           <div className="relative my-8">
-            <Separator className="bg-white/10" />
-            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-[#0a0a0a] px-4 text-sm text-gray-500">
+            <Separator className="bg-border" />
+            <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 bg-background px-4 text-sm text-muted-foreground">
               or
             </span>
           </div>
 
           {/* Demo mode */}
           <Link href="/dashboard">
-            <Button 
-              variant="ghost" 
-              className="w-full h-12 text-gray-400 hover:text-white hover:bg-white/5"
+            <Button
+              variant="ghost"
+              className="w-full h-12 text-muted-foreground hover:text-foreground hover:bg-accent"
             >
               Try demo mode (no sign in required)
             </Button>
           </Link>
 
           {/* Terms */}
-          <p className="mt-8 text-center text-sm text-gray-500">
+          <p className="mt-8 text-center text-sm text-muted-foreground">
             By continuing, you agree to our{" "}
-            <Link href="/terms" className="text-gray-400 hover:text-white underline underline-offset-4">
+            <Link href="/terms" className="text-foreground/70 hover:text-foreground underline underline-offset-4">
               Terms of Service
             </Link>{" "}
             and{" "}
-            <Link href="/privacy" className="text-gray-400 hover:text-white underline underline-offset-4">
+            <Link href="/privacy" className="text-foreground/70 hover:text-foreground underline underline-offset-4">
               Privacy Policy
             </Link>
           </p>

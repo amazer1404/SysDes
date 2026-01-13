@@ -1,12 +1,12 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { 
-  ArrowRight, 
-  Sparkles, 
-  Zap, 
-  Layers, 
-  GitBranch, 
+import {
+  ArrowRight,
+  Sparkles,
+  Zap,
+  Layers,
+  GitBranch,
   Search,
   Download,
   Github,
@@ -15,6 +15,7 @@ import {
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
 
 // Animation variants
 const fadeInUp = {
@@ -33,16 +34,16 @@ const staggerContainer = {
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#0a0a0a] text-white overflow-hidden">
+    <div className="min-h-screen bg-background text-foreground overflow-hidden">
       {/* Animated background */}
       <div className="fixed inset-0 z-0">
         {/* Gradient orbs */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-500/20 rounded-full blur-[128px] animate-pulse-glow" />
-        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/20 rounded-full blur-[128px] animate-pulse-glow" style={{ animationDelay: "1s" }} />
-        <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-pink-500/10 rounded-full blur-[128px] animate-pulse-glow" style={{ animationDelay: "2s" }} />
-        
+        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-500/20 dark:bg-purple-500/20 rounded-full blur-[128px] animate-pulse-glow" />
+        <div className="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-blue-500/20 dark:bg-blue-500/20 rounded-full blur-[128px] animate-pulse-glow" style={{ animationDelay: "1s" }} />
+        <div className="absolute top-1/2 left-1/2 w-[300px] h-[300px] bg-pink-500/10 dark:bg-pink-500/10 rounded-full blur-[128px] animate-pulse-glow" style={{ animationDelay: "2s" }} />
+
         {/* Grid pattern */}
-        <div 
+        <div
           className="absolute inset-0 opacity-[0.02]"
           style={{
             backgroundImage: `linear-gradient(rgba(255,255,255,0.1) 1px, transparent 1px),
@@ -53,7 +54,7 @@ export default function LandingPage() {
       </div>
 
       {/* Navigation */}
-      <nav className="relative z-10 border-b border-white/5">
+      <nav className="relative z-10 border-b border-border">
         <div className="max-w-7xl mx-auto px-6 py-4">
           <div className="flex items-center justify-between">
             <Link href="/" className="flex items-center gap-2">
@@ -64,25 +65,26 @@ export default function LandingPage() {
             </Link>
 
             <div className="hidden md:flex items-center gap-8">
-              <Link href="#features" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="#features" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 Features
               </Link>
-              <Link href="#how-it-works" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="#how-it-works" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 How it works
               </Link>
-              <Link href="https://github.com/AnupamSingh2004/SysDes" className="text-sm text-gray-400 hover:text-white transition-colors">
+              <Link href="https://github.com/AnupamSingh2004/SysDes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">
                 GitHub
               </Link>
             </div>
 
             <div className="flex items-center gap-3">
+              <ThemeToggle />
               <Link href="/login">
-                <Button variant="ghost" size="sm" className="text-gray-400 hover:text-white">
+                <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-foreground">
                   Sign in
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="sm" className="bg-white text-black hover:bg-gray-200">
+                <Button size="sm" className="bg-primary text-primary-foreground hover:bg-primary/90">
                   Get Started
                 </Button>
               </Link>
@@ -94,7 +96,7 @@ export default function LandingPage() {
       {/* Hero Section */}
       <section className="relative z-10 pt-20 pb-32">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div 
+          <motion.div
             className="text-center max-w-4xl mx-auto"
             initial="initial"
             animate="animate"
@@ -102,11 +104,11 @@ export default function LandingPage() {
           >
             {/* Badge */}
             <motion.div variants={fadeInUp}>
-              
+
             </motion.div>
 
             {/* Headline */}
-            <motion.h1 
+            <motion.h1
               variants={fadeInUp}
               className="text-5xl md:text-7xl font-bold tracking-tight mb-6"
             >
@@ -118,27 +120,27 @@ export default function LandingPage() {
             </motion.h1>
 
             {/* Subtitle */}
-            <motion.p 
+            <motion.p
               variants={fadeInUp}
-              className="text-xl text-gray-400 mb-10 max-w-2xl mx-auto leading-relaxed"
+              className="text-xl text-muted-foreground mb-10 max-w-2xl mx-auto leading-relaxed"
             >
-              Transform messy whiteboard sketches into professional system architecture 
+              Transform messy whiteboard sketches into professional system architecture
               diagrams with intelligent suggestions and version history.
             </motion.p>
 
             {/* CTA Buttons */}
-            <motion.div 
+            <motion.div
               variants={fadeInUp}
               className="flex flex-col sm:flex-row items-center justify-center gap-4"
             >
               <Link href="/login">
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200 px-8 h-12 text-base">
+                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-12 text-base">
                   Start Designing
                   <ArrowRight className="w-4 h-4 ml-2" />
                 </Button>
               </Link>
               <Link href="https://github.com/AnupamSingh2004/SysDes" target="_blank">
-                <Button size="lg" variant="outline" className="border-white/10 hover:bg-white/5 px-8 h-12 text-base">
+                <Button size="lg" variant="outline" className="border-border hover:bg-accent px-8 h-12 text-base">
                   <Github className="w-4 h-4 mr-2" />
                   View on GitHub
                 </Button>
@@ -146,20 +148,20 @@ export default function LandingPage() {
             </motion.div>
 
             {/* Social proof */}
-            <motion.div 
+            <motion.div
               variants={fadeInUp}
-              className="mt-12 flex items-center justify-center gap-6 text-sm text-gray-500"
+              className="mt-12 flex items-center justify-center gap-6 text-sm text-muted-foreground"
             >
               <span>Open Source</span>
-              <span className="w-1 h-1 bg-gray-600 rounded-full" />
+              <span className="w-1 h-1 bg-muted-foreground rounded-full" />
               <span>Free to use</span>
-              <span className="w-1 h-1 bg-gray-600 rounded-full" />
+              <span className="w-1 h-1 bg-muted-foreground rounded-full" />
               <span>No credit card required</span>
             </motion.div>
           </motion.div>
 
           {/* Hero visual */}
-          <motion.div 
+          <motion.div
             className="mt-20 relative"
             initial={{ opacity: 0, y: 50 }}
             animate={{ opacity: 1, y: 0 }}
@@ -167,28 +169,28 @@ export default function LandingPage() {
           >
             <div className="relative mx-auto max-w-5xl">
               {/* Browser mockup */}
-              <div className="rounded-xl border border-white/10 bg-[#111111] overflow-hidden shadow-2xl">
+              <div className="rounded-xl border border-border bg-card overflow-hidden shadow-2xl">
                 {/* Browser header */}
-                <div className="flex items-center gap-2 px-4 py-3 border-b border-white/5 bg-[#0d0d0d]">
+                <div className="flex items-center gap-2 px-4 py-3 border-b border-border bg-muted/50">
                   <div className="flex gap-1.5">
                     <div className="w-3 h-3 rounded-full bg-red-500/80" />
                     <div className="w-3 h-3 rounded-full bg-yellow-500/80" />
                     <div className="w-3 h-3 rounded-full bg-green-500/80" />
                   </div>
                   <div className="flex-1 mx-4">
-                    <div className="bg-white/5 rounded-md px-3 py-1.5 text-xs text-gray-500 max-w-md mx-auto">
+                    <div className="bg-muted rounded-md px-3 py-1.5 text-xs text-muted-foreground max-w-md mx-auto">
                       sysdes.app/canvas
                     </div>
                   </div>
                 </div>
-                
+
                 {/* App preview */}
-                <div className="aspect-[16/9] bg-gradient-to-br from-[#0d0d0d] to-[#151515] flex items-center justify-center">
+                <div className="aspect-[16/9] bg-gradient-to-br from-muted/50 to-muted flex items-center justify-center">
                   <div className="text-center">
-                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center mx-auto mb-4">
+                    <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-border flex items-center justify-center mx-auto mb-4">
                       <Layers className="w-10 h-10 text-purple-400" />
                     </div>
-                    <p className="text-gray-500 text-sm">Interactive demo coming soon...</p>
+                    <p className="text-muted-foreground text-sm">Interactive demo coming soon...</p>
                   </div>
                 </div>
               </div>
@@ -202,21 +204,21 @@ export default function LandingPage() {
       </section>
 
       {/* Features Section */}
-      <section id="features" className="relative z-10 py-32 border-t border-white/5">
+      <section id="features" className="relative z-10 py-32 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div 
+          <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Badge variant="outline" className="mb-4 border-white/10">
+            <Badge variant="outline" className="mb-4 border-border">
               Features
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold mb-4">
               Everything you need to
               <br />
-              <span className="text-gray-500">design better systems</span>
+              <span className="text-muted-foreground">design better systems</span>
             </h2>
           </motion.div>
 
@@ -237,21 +239,21 @@ export default function LandingPage() {
       </section>
 
       {/* How it works */}
-      <section id="how-it-works" className="relative z-10 py-32 border-t border-white/5">
+      <section id="how-it-works" className="relative z-10 py-32 border-t border-border">
         <div className="max-w-7xl mx-auto px-6">
-          <motion.div 
+          <motion.div
             className="text-center mb-16"
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
             viewport={{ once: true }}
           >
-            <Badge variant="outline" className="mb-4 border-white/10">
+            <Badge variant="outline" className="mb-4 border-border">
               How it works
             </Badge>
             <h2 className="text-4xl md:text-5xl font-bold">
               From sketch to diagram
               <br />
-              <span className="text-gray-500">in seconds</span>
+              <span className="text-muted-foreground">in seconds</span>
             </h2>
           </motion.div>
 
@@ -265,15 +267,15 @@ export default function LandingPage() {
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.2 }}
               >
-                <div className="text-6xl font-bold text-white/5 absolute -top-4 -left-2">
+                <div className="text-6xl font-bold text-foreground/5 absolute -top-4 -left-2">
                   {String(index + 1).padStart(2, '0')}
                 </div>
                 <div className="relative pt-8">
-                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center mb-4">
+                  <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-border flex items-center justify-center mb-4">
                     <step.icon className="w-6 h-6 text-purple-400" />
                   </div>
                   <h3 className="text-xl font-semibold mb-2">{step.title}</h3>
-                  <p className="text-gray-400 leading-relaxed">{step.description}</p>
+                  <p className="text-muted-foreground leading-relaxed">{step.description}</p>
                 </div>
               </motion.div>
             ))}
@@ -282,7 +284,7 @@ export default function LandingPage() {
       </section>
 
       {/* CTA Section */}
-      <section className="relative z-10 py-32 border-t border-white/5">
+      <section className="relative z-10 py-32 border-t border-border">
         <div className="max-w-4xl mx-auto px-6 text-center">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -296,18 +298,18 @@ export default function LandingPage() {
                 system design workflow?
               </span>
             </h2>
-            <p className="text-xl text-gray-400 mb-10">
+            <p className="text-xl text-muted-foreground mb-10">
               Join developers who are designing better systems with AI assistance.
             </p>
             <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
               <Link href="/login">
-                <Button size="lg" className="bg-white text-black hover:bg-gray-200 px-8 h-12 text-base">
+                <Button size="lg" className="bg-primary text-primary-foreground hover:bg-primary/90 px-8 h-12 text-base">
                   <Github className="w-4 h-4 mr-2" />
                   Continue with GitHub
                 </Button>
               </Link>
               <Link href="/login">
-                <Button size="lg" variant="outline" className="border-white/10 hover:bg-white/5 px-8 h-12 text-base">
+                <Button size="lg" variant="outline" className="border-border hover:bg-accent px-8 h-12 text-base">
                   <Chrome className="w-4 h-4 mr-2" />
                   Continue with Google
                 </Button>
@@ -318,7 +320,7 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="relative z-10 border-t border-white/5 py-12">
+      <footer className="relative z-10 border-t border-border py-12">
         <div className="max-w-7xl mx-auto px-6">
           <div className="flex flex-col md:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-2">
@@ -327,14 +329,14 @@ export default function LandingPage() {
               </div>
               <span className="font-medium">SysDes</span>
             </div>
-            <p className="text-sm text-gray-500">
+            <p className="text-sm text-muted-foreground">
               Built with ❤️ by{" "}
-              <Link href="https://github.com/AnupamSingh2004" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="https://github.com/AnupamSingh2004" className="text-foreground/70 hover:text-foreground transition-colors">
                 Anupam Singh
               </Link>
             </p>
             <div className="flex items-center gap-6">
-              <Link href="https://github.com/AnupamSingh2004/SysDes" className="text-gray-400 hover:text-white transition-colors">
+              <Link href="https://github.com/AnupamSingh2004/SysDes" className="text-muted-foreground hover:text-foreground transition-colors">
                 <Github className="w-5 h-5" />
               </Link>
             </div>
@@ -348,12 +350,12 @@ export default function LandingPage() {
 // Feature card component
 function FeatureCard({ icon: Icon, title, description }: { icon: React.ElementType; title: string; description: string }) {
   return (
-    <div className="group p-6 rounded-2xl border border-white/5 bg-white/[0.02] hover:bg-white/[0.04] hover:border-white/10 transition-all duration-300">
-      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-white/10 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
+    <div className="group p-6 rounded-2xl border border-border bg-card/50 hover:bg-card hover:border-border transition-all duration-300">
+      <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-purple-500/20 to-pink-500/20 border border-border flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
         <Icon className="w-6 h-6 text-purple-400" />
       </div>
       <h3 className="text-lg font-semibold mb-2">{title}</h3>
-      <p className="text-gray-400 text-sm leading-relaxed">{description}</p>
+      <p className="text-muted-foreground text-sm leading-relaxed">{description}</p>
     </div>
   );
 }

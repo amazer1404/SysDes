@@ -71,7 +71,7 @@ function ToolButton({ tool, icon, label, shortcut }: ToolButtonProps) {
             "p-2 rounded-lg transition-colors",
             isActive
               ? "bg-blue-500/20 text-blue-400"
-              : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+              : "text-muted-foreground hover:bg-accent hover:text-foreground"
           )}
         >
           {icon}
@@ -80,7 +80,7 @@ function ToolButton({ tool, icon, label, shortcut }: ToolButtonProps) {
       <TooltipContent side="right" className="flex items-center gap-2">
         <span>{label}</span>
         {shortcut && (
-          <kbd className="px-1.5 py-0.5 text-xs bg-zinc-700 rounded">{shortcut}</kbd>
+          <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">{shortcut}</kbd>
         )}
       </TooltipContent>
     </Tooltip>
@@ -93,7 +93,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
   const selectedIds = useCanvasStore((s) => s.canvas.selectedIds);
   const historyIndex = useCanvasStore((s) => s.historyIndex);
   const historyLength = useCanvasStore((s) => s.history.length);
-  
+
   const { setZoom, toggleGrid, undo, redo, deleteSelected, duplicateShapes } = useCanvasStore(
     useShallow((s) => ({
       setZoom: s.setZoom,
@@ -111,14 +111,15 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
 
   return (
     <TooltipProvider delayDuration={200}>
-      <div className={cn("flex flex-col gap-1 p-2 bg-zinc-900/95 backdrop-blur border border-zinc-800 rounded-xl", className)}>
+      <div className={cn("flex flex-col gap-1 p-2 bg-card/95 backdrop-blur border border-border rounded-xl max-h-[calc(100vh-8rem)] overflow-y-auto scrollbar-hide", className)}
+        style={{ scrollbarWidth: 'none', msOverflowStyle: 'none' }}>
         {/* Tools */}
         <div className="flex flex-col gap-1">
           <ToolButton tool="select" icon={<MousePointer2 size={20} />} label="Select" shortcut="V" />
           <ToolButton tool="pan" icon={<Hand size={20} />} label="Pan" shortcut="H" />
-          
-          <div className="h-px bg-zinc-800 my-1" />
-          
+
+          <div className="h-px bg-border my-1" />
+
           <ToolButton tool="rectangle" icon={<Square size={20} />} label="Rectangle" shortcut="R" />
           <ToolButton tool="ellipse" icon={<Circle size={20} />} label="Ellipse" shortcut="O" />
           <ToolButton tool="line" icon={<Minus size={20} />} label="Line" shortcut="L" />
@@ -140,8 +141,8 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
                 className={cn(
                   "p-2 rounded-lg transition-colors",
                   canUndo
-                    ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                    : "text-zinc-600 cursor-not-allowed"
+                    ? "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    : "text-muted-foreground/40 cursor-not-allowed"
                 )}
               >
                 <Undo2 size={20} />
@@ -149,7 +150,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
             </TooltipTrigger>
             <TooltipContent side="right">
               <span>Undo</span>
-              <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-zinc-700 rounded">⌘Z</kbd>
+              <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘Z</kbd>
             </TooltipContent>
           </Tooltip>
 
@@ -161,8 +162,8 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
                 className={cn(
                   "p-2 rounded-lg transition-colors",
                   canRedo
-                    ? "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
-                    : "text-zinc-600 cursor-not-allowed"
+                    ? "text-muted-foreground hover:bg-accent hover:text-foreground"
+                    : "text-muted-foreground/40 cursor-not-allowed"
                 )}
               >
                 <Redo2 size={20} />
@@ -170,7 +171,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
             </TooltipTrigger>
             <TooltipContent side="right">
               <span>Redo</span>
-              <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-zinc-700 rounded">⌘⇧Z</kbd>
+              <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">⌘⇧Z</kbd>
             </TooltipContent>
           </Tooltip>
         </div>
@@ -183,7 +184,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
             <TooltipTrigger asChild>
               <button
                 onClick={() => setZoom(zoom + 0.1)}
-                className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
               >
                 <ZoomIn size={20} />
               </button>
@@ -191,7 +192,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
             <TooltipContent side="right">Zoom In</TooltipContent>
           </Tooltip>
 
-          <div className="text-xs text-center text-zinc-500 py-1">
+          <div className="text-xs text-center text-muted-foreground py-1">
             {Math.round(zoom * 100)}%
           </div>
 
@@ -199,7 +200,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
             <TooltipTrigger asChild>
               <button
                 onClick={() => setZoom(zoom - 0.1)}
-                className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
               >
                 <ZoomOut size={20} />
               </button>
@@ -215,7 +216,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
                   "p-2 rounded-lg transition-colors",
                   showGrid
                     ? "bg-blue-500/20 text-blue-400"
-                    : "text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200"
+                    : "text-muted-foreground hover:bg-accent hover:text-foreground"
                 )}
               >
                 <Grid3X3 size={20} />
@@ -234,7 +235,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
                 <TooltipTrigger asChild>
                   <button
                     onClick={() => duplicateShapes(selectedIds)}
-                    className="p-2 rounded-lg text-zinc-400 hover:bg-zinc-800 hover:text-zinc-200 transition-colors"
+                    className="p-2 rounded-lg text-muted-foreground hover:bg-accent hover:text-foreground transition-colors"
                   >
                     <Copy size={20} />
                   </button>
@@ -253,7 +254,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
                 </TooltipTrigger>
                 <TooltipContent side="right">
                   <span>Delete</span>
-                  <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-zinc-700 rounded">Del</kbd>
+                  <kbd className="ml-2 px-1.5 py-0.5 text-xs bg-muted rounded">Del</kbd>
                 </TooltipContent>
               </Tooltip>
             </div>
@@ -274,7 +275,7 @@ export function StylePanel({ className }: { className?: string }) {
   const [isExpanded, setIsExpanded] = React.useState(true);
 
   return (
-    <div className={cn("bg-zinc-900/95 backdrop-blur border border-zinc-800 rounded-xl shadow-xl w-[240px]", className)}>
+    <div className={cn("bg-card/95 backdrop-blur border border-border rounded-xl shadow-xl w-[240px]", className)}>
       {/* Header - Always visible */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
@@ -285,16 +286,16 @@ export function StylePanel({ className }: { className?: string }) {
           <div className="w-6 h-6 rounded-md bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center">
             <Palette size={14} className="text-white" />
           </div>
-          <span className="text-sm font-medium text-zinc-200">Style</span> 
+          <span className="text-sm font-medium text-foreground">Style</span>
         </div>
         <div className={cn(
           "p-1 rounded-md transition-all",
-          isExpanded ? "bg-zinc-800" : "hover:bg-zinc-800"
+          isExpanded ? "bg-muted" : "hover:bg-muted"
         )}>
           {isExpanded ? (
-            <ChevronUp size={14} className="text-zinc-400" />
+            <ChevronUp size={14} className="text-muted-foreground" />
           ) : (
-            <ChevronDown size={14} className="text-zinc-400" />
+            <ChevronDown size={14} className="text-muted-foreground" />
           )}
         </div>
       </button>
@@ -305,9 +306,9 @@ export function StylePanel({ className }: { className?: string }) {
           {/* Stroke Color */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Stroke Color</label>
-              <div 
-                className="w-4 h-4 rounded-full border border-zinc-600" 
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stroke Color</label>
+              <div
+                className="w-4 h-4 rounded-full border border-border"
                 style={{ backgroundColor: currentStyle.strokeColor }}
               />
             </div>
@@ -331,13 +332,13 @@ export function StylePanel({ className }: { className?: string }) {
           {/* Fill Color */}
           <div className="space-y-2">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Fill Color</label>
-              <div 
-                className="w-4 h-4 rounded-full border border-zinc-600"
-                style={{ 
+              <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Fill Color</label>
+              <div
+                className="w-4 h-4 rounded-full border border-border"
+                style={{
                   backgroundColor: currentStyle.fillStyle === "none" ? "transparent" : currentStyle.fillColor,
-                  backgroundImage: currentStyle.fillStyle === "none" 
-                    ? "repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,0.1) 2px,rgba(255,255,255,0.1) 4px)" 
+                  backgroundImage: currentStyle.fillStyle === "none"
+                    ? "repeating-linear-gradient(45deg,transparent,transparent 2px,rgba(255,255,255,0.1) 2px,rgba(255,255,255,0.1) 4px)"
                     : undefined
                 }}
               />
@@ -346,10 +347,10 @@ export function StylePanel({ className }: { className?: string }) {
               <button
                 onClick={() => setStyle({ fillColor: "transparent", fillStyle: "none" })}
                 className={cn(
-                  "w-7 h-7 rounded-lg transition-all duration-150 hover:scale-110 border border-zinc-700",
+                  "w-7 h-7 rounded-lg transition-all duration-150 hover:scale-110 border border-border",
                   currentStyle.fillStyle === "none"
-                    ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-zinc-900 scale-110"
-                    : "hover:ring-1 hover:ring-zinc-600"
+                    ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-background scale-110"
+                    : "hover:ring-1 hover:ring-border"
                 )}
                 title="No fill"
               >
@@ -362,8 +363,8 @@ export function StylePanel({ className }: { className?: string }) {
                   className={cn(
                     "w-7 h-7 rounded-lg transition-all duration-150 hover:scale-110",
                     currentStyle.fillColor === color && currentStyle.fillStyle !== "none"
-                      ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-zinc-900 scale-110"
-                      : "hover:ring-1 hover:ring-zinc-600"
+                      ? "ring-2 ring-blue-500 ring-offset-1 ring-offset-background scale-110"
+                      : "hover:ring-1 hover:ring-border"
                   )}
                   style={{ backgroundColor: color }}
                 />
@@ -372,11 +373,11 @@ export function StylePanel({ className }: { className?: string }) {
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Stroke Width */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Stroke Width</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Stroke Width</label>
             <div className="flex gap-2">
               {STROKE_WIDTHS.map((width) => (
                 <button
@@ -386,7 +387,7 @@ export function StylePanel({ className }: { className?: string }) {
                     "flex-1 h-10 rounded-lg border-2 transition-all duration-150 flex items-center justify-center",
                     currentStyle.strokeWidth === width
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50"
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50"
                   )}
                   title={`${width}px`}
                 >
@@ -401,7 +402,7 @@ export function StylePanel({ className }: { className?: string }) {
 
           {/* Stroke Style */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Line Style</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Line Style</label>
             <div className="flex gap-2">
               {([
                 { style: "solid" as StrokeStyle, label: "Solid" },
@@ -415,7 +416,7 @@ export function StylePanel({ className }: { className?: string }) {
                     "flex-1 h-10 rounded-lg border-2 transition-all duration-150 flex flex-col items-center justify-center gap-1",
                     currentStyle.strokeStyle === style
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50"
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50"
                   )}
                   title={label}
                 >
@@ -438,7 +439,7 @@ export function StylePanel({ className }: { className?: string }) {
 
           {/* Fill Style */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Fill Pattern</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Fill Pattern</label>
             <div className="flex gap-2">
               {([
                 { style: "solid" as FillStyle, label: "Solid", icon: "▓" },
@@ -452,22 +453,22 @@ export function StylePanel({ className }: { className?: string }) {
                     "flex-1 h-10 rounded-lg border-2 transition-all duration-150 flex items-center justify-center",
                     currentStyle.fillStyle === style
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50"
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50"
                   )}
                   title={label}
                 >
-                  <span className="text-zinc-400 text-lg font-mono">{icon}</span>
+                  <span className="text-muted-foreground text-lg font-mono">{icon}</span>
                 </button>
               ))}
             </div>
           </div>
 
           {/* Divider */}
-          <div className="h-px bg-gradient-to-r from-transparent via-zinc-700 to-transparent" />
+          <div className="h-px bg-gradient-to-r from-transparent via-border to-transparent" />
 
           {/* Roughness / Drawing Style */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Drawing Style</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Drawing Style</label>
             <div className="grid grid-cols-3 gap-2">
               {([
                 { roughness: 0, label: "Clean" },
@@ -480,9 +481,9 @@ export function StylePanel({ className }: { className?: string }) {
                   className={cn(
                     "p-2 rounded-lg border-2 transition-all duration-150 flex flex-col items-center gap-1",
                     currentStyle.roughness === roughness ||
-                    (roughness === 2 && currentStyle.roughness >= 2)
+                      (roughness === 2 && currentStyle.roughness >= 2)
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50"
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50"
                   )}
                 >
                   <svg width="28" height="12" className="text-zinc-300">
@@ -494,7 +495,7 @@ export function StylePanel({ className }: { className?: string }) {
                       <path d="M2,6 Q5,2 10,7 Q15,3 20,8 Q24,4 26,6" stroke="currentColor" strokeWidth="2" fill="none" />
                     )}
                   </svg>
-                  <span className="text-[10px] font-medium text-zinc-400">{label}</span>
+                  <span className="text-[10px] font-medium text-muted-foreground">{label}</span>
                 </button>
               ))}
             </div>
@@ -541,21 +542,21 @@ export function TextStylePanel({ className }: { className?: string }) {
   };
 
   return (
-    <div className={cn("bg-zinc-900/95 backdrop-blur border border-zinc-800 rounded-xl shadow-xl w-[240px]", className)}>
+    <div className={cn("bg-card/95 backdrop-blur border border-border rounded-xl shadow-xl w-[240px]", className)}>
       {/* Header */}
       <button
         onClick={() => setIsExpanded(!isExpanded)}
-        className="w-full flex items-center justify-between p-3 hover:bg-zinc-800/50 transition-colors rounded-t-xl"
-        style={{ borderBottom: isExpanded ? '1px solid rgba(63, 63, 70, 0.5)' : 'none' }}
+        className="w-full flex items-center justify-between p-3 hover:bg-accent/50 transition-colors rounded-t-xl"
+        style={{ borderBottom: isExpanded ? '1px solid hsl(var(--border))' : 'none' }}
       >
         <div className="flex items-center gap-2">
           <div className="w-6 h-6 rounded-md bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
             <CaseSensitive size={14} className="text-white" />
           </div>
-          <span className="text-sm font-medium text-zinc-200">Text</span>
+          <span className="text-sm font-medium text-foreground">Text</span>
         </div>
-        <div className={cn("p-1 rounded-md transition-all", isExpanded ? "bg-zinc-800" : "hover:bg-zinc-800")}>
-          {isExpanded ? <ChevronUp size={14} className="text-zinc-400" /> : <ChevronDown size={14} className="text-zinc-400" />}
+        <div className={cn("p-1 rounded-md transition-all", isExpanded ? "bg-muted" : "hover:bg-muted")}>
+          {isExpanded ? <ChevronUp size={14} className="text-muted-foreground" /> : <ChevronDown size={14} className="text-muted-foreground" />}
         </div>
       </button>
 
@@ -563,7 +564,7 @@ export function TextStylePanel({ className }: { className?: string }) {
         <div className="flex flex-col gap-4 p-4">
           {/* Font Size */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Font Size</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Font Size</label>
             <div className="grid grid-cols-3 gap-2">
               {([
                 { size: 16, label: "S" },
@@ -581,11 +582,11 @@ export function TextStylePanel({ className }: { className?: string }) {
                     "p-2 rounded-lg border-2 transition-all duration-150 flex items-center justify-center",
                     textShape?.fontSize === size
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50",
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50",
                     !textShape && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <span className="text-xs font-medium text-zinc-300">{label}</span>
+                  <span className="text-xs font-medium text-foreground">{label}</span>
                 </button>
               ))}
             </div>
@@ -593,7 +594,7 @@ export function TextStylePanel({ className }: { className?: string }) {
 
           {/* Font Family */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Font Family</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Font Family</label>
             <div className="flex flex-col gap-2">
               {FONT_FAMILIES.map(({ name, value }) => (
                 <button
@@ -604,12 +605,12 @@ export function TextStylePanel({ className }: { className?: string }) {
                     "p-2 rounded-lg border-2 transition-all duration-150 text-left",
                     textShape?.fontFamily === value
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50",
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50",
                     !textShape && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <span 
-                    className="text-sm text-zinc-300" 
+                  <span
+                    className="text-sm text-foreground"
                     style={{ fontFamily: value }}
                   >
                     {name}
@@ -621,7 +622,7 @@ export function TextStylePanel({ className }: { className?: string }) {
 
           {/* Text Alignment */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Text Align</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Text Align</label>
             <div className="flex gap-2">
               {([
                 { align: "left" as const, icon: AlignLeft },
@@ -636,11 +637,11 @@ export function TextStylePanel({ className }: { className?: string }) {
                     "flex-1 p-2 rounded-lg border-2 transition-all duration-150 flex items-center justify-center",
                     textShape?.textAlign === align
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50",
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50",
                     !textShape && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <Icon size={16} className="text-zinc-300" />
+                  <Icon size={16} className="text-foreground" />
                 </button>
               ))}
             </div>
@@ -648,7 +649,7 @@ export function TextStylePanel({ className }: { className?: string }) {
 
           {/* Vertical Alignment */}
           <div className="space-y-2">
-            <label className="text-xs font-medium text-zinc-400 uppercase tracking-wider">Vertical Align</label>
+            <label className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Vertical Align</label>
             <div className="flex gap-2">
               {([
                 { align: "top" as const, icon: AlignVerticalJustifyStart },
@@ -663,11 +664,11 @@ export function TextStylePanel({ className }: { className?: string }) {
                     "flex-1 p-2 rounded-lg border-2 transition-all duration-150 flex items-center justify-center",
                     textShape?.verticalAlign === align
                       ? "border-blue-500 bg-blue-500/10"
-                      : "border-zinc-700 hover:border-zinc-600 hover:bg-zinc-800/50",
+                      : "border-border hover:border-muted-foreground hover:bg-accent/50",
                     !textShape && "opacity-50 cursor-not-allowed"
                   )}
                 >
-                  <Icon size={16} className="text-zinc-300" />
+                  <Icon size={16} className="text-foreground" />
                 </button>
               ))}
             </div>

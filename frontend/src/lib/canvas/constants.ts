@@ -64,19 +64,19 @@ export const CANVAS_CONFIG = {
   MIN_ZOOM: 0.1,
   MAX_ZOOM: 10,
   ZOOM_STEP: 0.1,
-  
+
   // Selection
   SELECTION_PADDING: 4,
   HANDLE_SIZE: 8,
   ROTATION_HANDLE_OFFSET: 24,
-  
+
   // Grid - Dot pattern like Excalidraw
   GRID_DOT_COLOR: "#3d3d3d",
   GRID_DOT_SIZE: 1,
-  
+
   // Snapping
   SNAP_THRESHOLD: 8,
-  
+
   // Performance
   MIN_SHAPE_SIZE: 2,
   DEBOUNCE_HISTORY: 300,
@@ -96,7 +96,7 @@ export const COLOR_PALETTE = [
   "#60a5fa", // Blue
   "#a78bfa", // Purple
   "#f472b6", // Pink
-  "#94a3b8", // Gray
+  "#1e1e1e", // Black/Dark
 ] as const;
 
 export const FILL_COLORS = [
