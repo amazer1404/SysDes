@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { CustomCanvas, CanvasToolbar, StylePanel, TextStylePanel, useCanvasStore } from "@/components/canvas";
 import { Logo } from "@/components/shared";
 import { api, Project, Suggestion, Whiteboard, CanvasDocument } from "@/lib/api";
+import { interpretSketch, captureCanvasFromContainer, InterpretResponse, Suggestion as AISuggestion } from "@/lib/ai-service";
 import { useAuthContext } from "@/providers/auth-provider";
 import type { Shape } from "@/lib/canvas";
 
@@ -46,6 +47,10 @@ export default function CanvasPage() {
   const [showAISidebar, setShowAISidebar] = useState(false);
   const [showStylePanel, setShowStylePanel] = useState(true);
   const [suggestions] = useState<Suggestion[]>(mockSuggestions);
+  const [aiProcessing, setAiProcessing] = useState(false);
+  const [aiResults, setAiResults] = useState<InterpretResponse | null>(null);
+  const [aiError, setAiError] = useState<string | null>(null);
+  const canvasContainerRef = useRef<HTMLDivElement>(null);
   const lastSaveRef = useRef<number>(0);
 
   const projectId = params.id as string;
@@ -202,6 +207,36 @@ export default function CanvasPage() {
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleSave]);
 
+  // Handle AI interpretation
+  const handleAIInterpret = useCallback(async () => {
+    setAiProcessing(true);
+    setAiError(null);
+
+    try {
+      // Get canvas container and capture SVG
+      const container = canvasContainerRef.current;
+      if (!container) {
+        throw new Error("Canvas container not found");
+      }
+
+      const image = await captureCanvasFromContainer(container);
+
+      // Send to AI for interpretation
+      const results = await interpretSketch(image, `System design diagram for ${project?.name || "untitled project"}`);
+
+      setAiResults(results);
+      setShowAISidebar(true); // Show results in sidebar
+
+      console.log("AI Interpretation Results:", results);
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Failed to interpret sketch";
+      setAiError(message);
+      console.error("AI Interpretation Error:", error);
+    } finally {
+      setAiProcessing(false);
+    }
+  }, [project?.name]);
+
   if (loading || authLoading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -237,6 +272,25 @@ export default function CanvasPage() {
         </div>
 
         <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-muted-foreground hover:text-foreground"
+            onClick={handleAIInterpret}
+            disabled={aiProcessing}
+          >
+            {aiProcessing ? (
+              <>
+                <Loader2 size={18} className="mr-2 animate-spin" />
+                Analyzing...
+              </>
+            ) : (
+              <>
+                <Sparkles size={18} className="mr-2" />
+                Interpret
+              </>
+            )}
+          </Button>
           <Button
             variant="ghost"
             size="sm"
@@ -304,13 +358,16 @@ export default function CanvasPage() {
         </div>
 
         {/* Canvas */}
-        <div className="flex-1 relative">
+        <div ref={canvasContainerRef} className="flex-1 relative">
           <CustomCanvas className="w-full h-full" />
         </div>
 
         {/* Right Style Panels - Side by side horizontally */}
         {showStylePanel && (
-          <div className="absolute top-4 right-4 z-10 flex flex-row items-start gap-3">
+          <div
+            className="absolute top-4 z-10 flex flex-row items-start gap-3 transition-all duration-300"
+            style={{ right: showAISidebar ? 'calc(320px + 16px)' : '16px' }}
+          >
             <TextStylePanel />
             <StylePanel />
           </div>
@@ -322,14 +379,101 @@ export default function CanvasPage() {
             <div className="p-4 border-b border-border flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <Sparkles className="w-4 h-4 text-purple-400" />
-                <h2 className="font-semibold text-foreground">AI Suggestions</h2>
+                <h2 className="font-semibold text-foreground">AI Analysis</h2>
               </div>
               <button onClick={() => setShowAISidebar(false)} className="text-muted-foreground hover:text-foreground">
                 <X size={18} />
               </button>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 space-y-3">
-              {suggestions.map((s) => (
+            <div className="flex-1 overflow-y-auto p-4 space-y-4">
+              {/* AI Error */}
+              {aiError && (
+                <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-lg">
+                  <p className="text-sm text-red-400">{aiError}</p>
+                </div>
+              )}
+
+              {/* AI Results */}
+              {aiResults && (
+                <>
+                  {/* Confidence Score */}
+                  <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                    <div className="flex items-center justify-between mb-2">
+                      <span className="text-xs text-muted-foreground">Overall Confidence</span>
+                      <span className="text-sm font-medium text-foreground">
+                        {Math.round(aiResults.overall_confidence * 100)}%
+                      </span>
+                    </div>
+                    <div className="h-2 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-gradient-to-r from-blue-500 to-purple-500"
+                        style={{ width: `${aiResults.overall_confidence * 100}%` }}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Detected Patterns */}
+                  {aiResults.patterns_detected.length > 0 && (
+                    <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                      <h3 className="text-xs font-medium text-muted-foreground mb-2">Patterns Detected</h3>
+                      <div className="flex flex-wrap gap-1">
+                        {aiResults.patterns_detected.map((pattern, i) => (
+                          <span key={i} className="text-xs px-2 py-1 bg-purple-500/20 text-purple-400 rounded">
+                            {pattern}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Nodes */}
+                  <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                    <h3 className="text-xs font-medium text-muted-foreground mb-2">Components ({aiResults.nodes.length})</h3>
+                    <div className="space-y-2">
+                      {aiResults.nodes.map((node) => (
+                        <div key={node.id} className="flex items-center gap-2">
+                          <span className="text-xs px-2 py-0.5 bg-blue-500/20 text-blue-400 rounded">
+                            {node.type}
+                          </span>
+                          <span className="text-sm text-foreground">{node.label}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Edges */}
+                  {aiResults.edges.length > 0 && (
+                    <div className="p-3 bg-muted/50 rounded-lg border border-border">
+                      <h3 className="text-xs font-medium text-muted-foreground mb-2">Connections ({aiResults.edges.length})</h3>
+                      <div className="space-y-2">
+                        {aiResults.edges.map((edge) => (
+                          <div key={edge.id} className="text-xs text-muted-foreground">
+                            <span className="text-foreground">{edge.source}</span>
+                            {" → "}
+                            <span className="text-foreground">{edge.target}</span>
+                            {edge.label && <span className="ml-2 text-blue-400">({edge.label})</span>}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Ambiguities */}
+                  {aiResults.ambiguities && aiResults.ambiguities.length > 0 && (
+                    <div className="p-3 bg-yellow-500/10 border border-yellow-500/30 rounded-lg">
+                      <h3 className="text-xs font-medium text-yellow-400 mb-2">Needs Clarification</h3>
+                      <ul className="space-y-1">
+                        {aiResults.ambiguities.map((item, i) => (
+                          <li key={i} className="text-xs text-yellow-400/80">{item}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+                </>
+              )}
+
+              {/* Default suggestions when no AI results */}
+              {!aiResults && !aiError && suggestions.map((s) => (
                 <div key={s.id} className="p-3 bg-muted/50 rounded-lg border border-border">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-xs px-2 py-0.5 rounded ${s.priority === "high" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"

@@ -10,6 +10,7 @@ import (
 	fiberlogger "github.com/gofiber/fiber/v2/middleware/logger"
 	"github.com/gofiber/fiber/v2/middleware/recover"
 
+	"github.com/AnupamSingh2004/SysDes/backend/internal/ai"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/auth"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/project"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/shared/config"
@@ -50,6 +51,16 @@ func main() {
 	whiteboardService := whiteboard.NewService(whiteboardRepo)
 	whiteboardHandler := whiteboard.NewHandler(whiteboardService)
 
+	// Initialize AI domain
+	aiService := ai.NewService(cfg.GeminiAPIKey)
+	aiHandler := ai.NewHandler(aiService)
+
+	if cfg.GeminiAPIKey != "" {
+		logger.Info().Msg("✅ Gemini API key configured")
+	} else {
+		logger.Warn().Msg("⚠️  Gemini API key not configured - AI features will be disabled")
+	}
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      "SysDes API",
@@ -69,7 +80,7 @@ func main() {
 	}))
 
 	// Setup routes
-	setupRoutes(app, cfg, authHandler, authMiddleware, projectHandler, whiteboardHandler)
+	setupRoutes(app, cfg, authHandler, authMiddleware, projectHandler, whiteboardHandler, aiHandler)
 
 	// Graceful shutdown
 	go func() {
@@ -88,7 +99,7 @@ func main() {
 	}
 }
 
-func setupRoutes(app *fiber.App, cfg *config.Config, authHandler *auth.Handler, authMiddleware *auth.Middleware, projectHandler *project.Handler, whiteboardHandler *whiteboard.Handler) {
+func setupRoutes(app *fiber.App, cfg *config.Config, authHandler *auth.Handler, authMiddleware *auth.Middleware, projectHandler *project.Handler, whiteboardHandler *whiteboard.Handler, aiHandler *ai.Handler) {
 	// API v1
 	api := app.Group("/api/v1")
 
@@ -128,6 +139,9 @@ func setupRoutes(app *fiber.App, cfg *config.Config, authHandler *auth.Handler, 
 
 	// Whiteboard routes
 	whiteboardHandler.RegisterRoutes(api, authMiddleware.RequireAuth)
+
+	// AI routes
+	aiHandler.RegisterRoutes(api, authMiddleware.RequireAuth)
 }
 
 // Custom error handler
