@@ -13,6 +13,7 @@ import (
 	"github.com/AnupamSingh2004/SysDes/backend/internal/ai"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/auth"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/project"
+	"github.com/AnupamSingh2004/SysDes/backend/internal/rules"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/shared/config"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/shared/database"
 	"github.com/AnupamSingh2004/SysDes/backend/internal/shared/logger"
@@ -61,6 +62,9 @@ func main() {
 		logger.Warn().Msg("⚠️  Gemini API key not configured - AI features will be disabled")
 	}
 
+	// Initialize rules engine
+	rulesHandler := rules.NewHandler()
+
 	// Create Fiber app
 	app := fiber.New(fiber.Config{
 		AppName:      "SysDes API",
@@ -80,7 +84,7 @@ func main() {
 	}))
 
 	// Setup routes
-	setupRoutes(app, cfg, authHandler, authMiddleware, projectHandler, whiteboardHandler, aiHandler)
+	setupRoutes(app, cfg, authHandler, authMiddleware, projectHandler, whiteboardHandler, aiHandler, rulesHandler)
 
 	// Graceful shutdown
 	go func() {
@@ -99,7 +103,7 @@ func main() {
 	}
 }
 
-func setupRoutes(app *fiber.App, cfg *config.Config, authHandler *auth.Handler, authMiddleware *auth.Middleware, projectHandler *project.Handler, whiteboardHandler *whiteboard.Handler, aiHandler *ai.Handler) {
+func setupRoutes(app *fiber.App, cfg *config.Config, authHandler *auth.Handler, authMiddleware *auth.Middleware, projectHandler *project.Handler, whiteboardHandler *whiteboard.Handler, aiHandler *ai.Handler, rulesHandler *rules.Handler) {
 	// API v1
 	api := app.Group("/api/v1")
 
@@ -142,6 +146,9 @@ func setupRoutes(app *fiber.App, cfg *config.Config, authHandler *auth.Handler, 
 
 	// AI routes
 	aiHandler.RegisterRoutes(api, authMiddleware.RequireAuth)
+
+	// Rules routes
+	rulesHandler.RegisterRoutes(api, authMiddleware.RequireAuth)
 }
 
 // Custom error handler

@@ -12,7 +12,8 @@ import { Button } from "@/components/ui/button";
 import { CustomCanvas, CanvasToolbar, StylePanel, TextStylePanel, useCanvasStore } from "@/components/canvas";
 import { Logo } from "@/components/shared";
 import { api, Project, Suggestion, Whiteboard, CanvasDocument } from "@/lib/api";
-import { interpretSketch, captureCanvasFromContainer, InterpretResponse, Suggestion as AISuggestion } from "@/lib/ai-service";
+import { interpretSketch, captureCanvasFromContainer, InterpretResponse } from "@/lib/ai-service";
+import { analyzeDesign, AnalyzeResponse, RuleSuggestion, getSeverityColor } from "@/lib/rules-service";
 import { useAuthContext } from "@/providers/auth-provider";
 import type { Shape } from "@/lib/canvas";
 
@@ -50,6 +51,7 @@ export default function CanvasPage() {
   const [aiProcessing, setAiProcessing] = useState(false);
   const [aiResults, setAiResults] = useState<InterpretResponse | null>(null);
   const [aiError, setAiError] = useState<string | null>(null);
+  const [rulesResults, setRulesResults] = useState<AnalyzeResponse | null>(null);
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const lastSaveRef = useRef<number>(0);
 
@@ -211,6 +213,7 @@ export default function CanvasPage() {
   const handleAIInterpret = useCallback(async () => {
     setAiProcessing(true);
     setAiError(null);
+    setRulesResults(null);
 
     try {
       // Get canvas container and capture SVG
@@ -225,7 +228,36 @@ export default function CanvasPage() {
       const results = await interpretSketch(image, `System design diagram for ${project?.name || "untitled project"}`);
 
       setAiResults(results);
-      setShowAISidebar(true); // Show results in sidebar
+      setShowAISidebar(true);
+
+      // If we got nodes, run rules analysis
+      if (results.nodes && results.nodes.length > 0) {
+        try {
+          const rulesResponse = await analyzeDesign(
+            results.nodes.map(n => ({
+              id: n.id,
+              type: n.type,
+              label: n.label,
+              description: n.description,
+              position: n.position,
+              properties: n.properties as Record<string, unknown>,
+            })),
+            results.edges.map(e => ({
+              id: e.id,
+              source: e.source,
+              target: e.target,
+              type: e.type,
+              label: e.label,
+              properties: e.properties as Record<string, unknown>,
+              style: e.style,
+            }))
+          );
+          setRulesResults(rulesResponse);
+          console.log("Rules Analysis Results:", rulesResponse);
+        } catch (rulesError) {
+          console.error("Rules Analysis Error:", rulesError);
+        }
+      }
 
       console.log("AI Interpretation Results:", results);
     } catch (error) {
@@ -472,8 +504,48 @@ export default function CanvasPage() {
                 </>
               )}
 
+              {/* Rules Engine Suggestions */}
+              {rulesResults && rulesResults.suggestions.length > 0 && (
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h3 className="text-xs font-medium text-muted-foreground">Design Suggestions</h3>
+                    <div className="flex gap-1">
+                      {rulesResults.critical_count > 0 && (
+                        <span className="text-xs px-1.5 py-0.5 bg-red-500/20 text-red-400 rounded">
+                          {rulesResults.critical_count} critical
+                        </span>
+                      )}
+                      {rulesResults.warning_count > 0 && (
+                        <span className="text-xs px-1.5 py-0.5 bg-yellow-500/20 text-yellow-400 rounded">
+                          {rulesResults.warning_count} warnings
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                  {rulesResults.suggestions.map((suggestion) => (
+                    <div
+                      key={suggestion.id}
+                      className={`p-3 rounded-lg border ${getSeverityColor(suggestion.severity)}`}
+                    >
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-medium capitalize">
+                          {suggestion.severity}
+                        </span>
+                        <span className="text-xs opacity-70">{suggestion.category}</span>
+                      </div>
+                      <h4 className="text-sm font-medium mb-1">{suggestion.title}</h4>
+                      <p className="text-xs opacity-80 mb-2">{suggestion.description}</p>
+                      <div className="text-xs p-2 bg-black/10 rounded">
+                        <span className="font-medium">Recommendation: </span>
+                        {suggestion.recommendation}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+
               {/* Default suggestions when no AI results */}
-              {!aiResults && !aiError && suggestions.map((s) => (
+              {!aiResults && !aiError && !rulesResults && suggestions.map((s) => (
                 <div key={s.id} className="p-3 bg-muted/50 rounded-lg border border-border">
                   <div className="flex items-center gap-2 mb-1">
                     <span className={`text-xs px-2 py-0.5 rounded ${s.priority === "high" ? "bg-red-500/20 text-red-400" : "bg-yellow-500/20 text-yellow-400"
