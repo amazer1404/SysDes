@@ -515,9 +515,10 @@ export function CustomCanvas({ className }: CustomCanvasProps) {
         case "line":
         case "arrow":
         case "freedraw":
-        case "eraser": {
+        case "eraser":
+        case "icon": {
           const clickedShape = storeActions.getShapeAtPoint(point);
-          if (clickedShape && canvas.selectedIds.includes(clickedShape.id) && canvas.activeTool !== "eraser") {
+          if (clickedShape && canvas.selectedIds.includes(clickedShape.id) && canvas.activeTool !== "eraser" && canvas.activeTool !== "icon") {
             storeActions.startDragging(point);
             localStateRef.current.isDragging = true;
 

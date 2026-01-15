@@ -6,8 +6,9 @@
 
 import React, { useMemo } from "react";
 import { useTheme } from "next-themes";
-import type { Shape, RectangleShape, EllipseShape, LineShape, ArrowShape, TextShape, FreedrawShape } from "@/lib/canvas";
+import type { Shape, RectangleShape, EllipseShape, LineShape, ArrowShape, TextShape, FreedrawShape, IconShape } from "@/lib/canvas";
 import { roughRectangle, roughEllipse, roughLine, roughArrow, roughFreedraw, generateHachureFill, generateCrossHatchFill } from "./rough";
+import { getIconById } from "@/lib/icons/system-icons";
 
 // Helper function to swap white/black based on theme
 function getThemeAwareColor(color: string, isDark: boolean): string {
@@ -80,6 +81,8 @@ export const ShapeRenderer = React.memo(function ShapeRenderer({ shape, isSelect
       return <TextRenderer shape={shape} {...commonProps} />;
     case "freedraw":
       return <FreedrawRenderer shape={shape} {...commonProps} />;
+    case "icon":
+      return <IconRenderer shape={shape} {...commonProps} />;
     default:
       return null;
   }
@@ -471,4 +474,75 @@ function FreedrawRenderer({ shape, stroke, strokeWidth, opacity }: FreedrawRende
   );
 }
 
+// ============================================
+// Icon Renderer
+// ============================================
+
+interface IconRendererProps {
+  shape: IconShape;
+  stroke: string;
+  opacity: number;
+}
+
+function IconRenderer({ shape, stroke, opacity }: IconRendererProps) {
+  const icon = getIconById(shape.iconId);
+
+  if (!icon) {
+    // Render a placeholder if icon not found
+    return (
+      <g
+        transform={`translate(${shape.x}, ${shape.y})`}
+        opacity={opacity}
+      >
+        <rect
+          x={0}
+          y={0}
+          width={shape.width}
+          height={shape.height}
+          fill="none"
+          stroke={stroke}
+          strokeWidth={1}
+          strokeDasharray="4,4"
+        />
+        <text
+          x={shape.width / 2}
+          y={shape.height / 2}
+          textAnchor="middle"
+          dominantBaseline="middle"
+          fill={stroke}
+          fontSize={12}
+        >
+          ?
+        </text>
+      </g>
+    );
+  }
+
+  const scale = shape.scale || 1;
+  const iconSize = icon.defaultSize * scale;
+
+  return (
+    <g
+      transform={`translate(${shape.x}, ${shape.y})`}
+      opacity={opacity}
+    >
+      {/* Icon SVG */}
+      <svg
+        x={0}
+        y={0}
+        width={shape.width}
+        height={shape.height}
+        viewBox={icon.viewBox}
+        preserveAspectRatio="xMidYMid meet"
+      >
+        <g
+          fill={stroke}
+          dangerouslySetInnerHTML={{ __html: icon.svg }}
+        />
+      </svg>
+    </g>
+  );
+}
+
 export default ShapeRenderer;
+

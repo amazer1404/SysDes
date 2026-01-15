@@ -13,6 +13,7 @@ import type {
   FreedrawShape,
   TextShape,
   EraserShape,
+  IconShape,
   ShapeStyle,
   ResizeHandle,
   InternalShape,
@@ -149,6 +150,8 @@ export function isPointInShape(point: Point, shape: Shape): boolean {
       return isPointNearFreedraw(point, shape);
     case "text":
       return isPointInText(point, shape);
+    case "icon":
+      return isPointInIcon(point, shape);
     default:
       return isPointInBounds(point, bounds);
   }
@@ -160,7 +163,7 @@ function isPointInText(point: Point, shape: TextShape): boolean {
   if (!shape.text) {
     return isPointInBounds(point, { x: shape.x, y: shape.y, width: shape.width, height: shape.height });
   }
-  
+
   // Calculate actual text bounds based on content
   // Use a smaller hit area - only the text content area, not the full bounding box
   const padding = 4; // Small padding around text
@@ -170,8 +173,18 @@ function isPointInText(point: Point, shape: TextShape): boolean {
     width: shape.width + padding * 2,
     height: shape.height + padding * 2,
   };
-  
+
   return isPointInBounds(point, textBounds);
+}
+
+// For icon shapes, hit anywhere inside the bounds
+function isPointInIcon(point: Point, shape: IconShape): boolean {
+  return isPointInBounds(point, {
+    x: shape.x,
+    y: shape.y,
+    width: shape.width,
+    height: shape.height,
+  });
 }
 
 function isPointInRectangle(point: Point, shape: RectangleShape): boolean {
@@ -182,7 +195,7 @@ function isPointInRectangle(point: Point, shape: RectangleShape): boolean {
 
   const halfStroke = shape.strokeWidth / 2;
   const threshold = Math.max(shape.strokeWidth, 8); // Minimum hit area
-  
+
   // Check if point is within outer bounds (including stroke)
   const inOuterBounds = (
     point.x >= shape.x - halfStroke &&
@@ -190,15 +203,15 @@ function isPointInRectangle(point: Point, shape: RectangleShape): boolean {
     point.y >= shape.y - halfStroke &&
     point.y <= shape.y + shape.height + halfStroke
   );
-  
+
   if (!inOuterBounds) return false;
-  
+
   // If shape has no fill or transparent fill, only hit-test the stroke/border area
-  const hasNoFill = shape.fillStyle === "none" || 
-                    shape.fillColor === "transparent" || 
-                    shape.fillColor === "rgba(0,0,0,0)" ||
-                    shape.fillColor === "";
-  
+  const hasNoFill = shape.fillStyle === "none" ||
+    shape.fillColor === "transparent" ||
+    shape.fillColor === "rgba(0,0,0,0)" ||
+    shape.fillColor === "";
+
   if (hasNoFill) {
     // Check if point is within inner bounds (inside the stroke)
     const inInnerBounds = (
@@ -210,7 +223,7 @@ function isPointInRectangle(point: Point, shape: RectangleShape): boolean {
     // If inside inner bounds, not on the stroke
     return !inInnerBounds;
   }
-  
+
   // Shape has fill, hit anywhere inside
   return true;
 }
@@ -228,28 +241,28 @@ function isPointInEllipse(point: Point, shape: EllipseShape): boolean {
   const dx = point.x - cx;
   const dy = point.y - cy;
   const normalizedDist = (dx * dx) / (rx * rx) + (dy * dy) / (ry * ry);
-  
+
   // Check if point is within outer ellipse
   if (normalizedDist > 1) return false;
-  
+
   // If shape has no fill or transparent fill, only hit-test the stroke/border area
-  const hasNoFill = shape.fillStyle === "none" || 
-                    shape.fillColor === "transparent" || 
-                    shape.fillColor === "rgba(0,0,0,0)" ||
-                    shape.fillColor === "";
-  
+  const hasNoFill = shape.fillStyle === "none" ||
+    shape.fillColor === "transparent" ||
+    shape.fillColor === "rgba(0,0,0,0)" ||
+    shape.fillColor === "";
+
   if (hasNoFill) {
     const threshold = Math.max(shape.strokeWidth, 8);
     const innerRx = Math.max(0, shape.width / 2 - threshold);
     const innerRy = Math.max(0, shape.height / 2 - threshold);
-    
+
     if (innerRx > 0 && innerRy > 0) {
       const innerNormalizedDist = (dx * dx) / (innerRx * innerRx) + (dy * dy) / (innerRy * innerRy);
       // If inside inner ellipse, not on the stroke
       return innerNormalizedDist >= 1;
     }
   }
-  
+
   // Shape has fill, hit anywhere inside
   return true;
 }

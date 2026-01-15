@@ -30,6 +30,7 @@ export type ShapeType =
   | "arrow"
   | "text"
   | "freedraw"
+  | "icon"
   | "eraser";
 
 export type StrokeStyle = "solid" | "dashed" | "dotted";
@@ -119,6 +120,12 @@ export interface EraserShape extends BaseShape {
   pressures: number[];
 }
 
+export interface IconShape extends BaseShape {
+  type: "icon";
+  iconId: string; // Reference to system icon
+  scale: number; // Icon scale factor
+}
+
 // Union type for all shapes (eraser is internal only, not persisted)
 export type Shape =
   | RectangleShape
@@ -126,7 +133,8 @@ export type Shape =
   | LineShape
   | ArrowShape
   | TextShape
-  | FreedrawShape;
+  | FreedrawShape
+  | IconShape;
 
 // Internal shape type that includes eraser for interaction tracking
 export type InternalShape = Shape | EraserShape;
@@ -144,6 +152,7 @@ export type ToolType =
   | "arrow"
   | "text"
   | "freedraw"
+  | "icon"
   | "eraser";
 
 export interface ShapeStyle {

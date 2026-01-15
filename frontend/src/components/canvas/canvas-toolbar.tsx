@@ -4,7 +4,7 @@
 
 "use client";
 
-import React from "react";
+import React, { useState, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
   MousePointer2,
@@ -33,6 +33,7 @@ import {
   AlignVerticalJustifyEnd,
   CaseSensitive,
   Eraser,
+  Shapes,
 } from "lucide-react";
 import type { ToolType, StrokeStyle, FillStyle, TextShape } from "@/lib/canvas";
 import { COLOR_PALETTE, STROKE_WIDTHS, FONT_FAMILIES } from "@/lib/canvas";
@@ -44,6 +45,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { IconPicker } from "./icon-picker";
 
 interface CanvasToolbarProps {
   className?: string;
@@ -87,6 +89,67 @@ function ToolButton({ tool, icon, label, shortcut }: ToolButtonProps) {
   );
 }
 
+// Icon tool button with picker popup
+function IconToolButton() {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+  const [selectedIconId, setSelectedIconId] = useState<string | undefined>();
+  const buttonRef = useRef<HTMLButtonElement>(null);
+  const activeTool = useCanvasStore((s) => s.canvas.activeTool);
+  const setTool = useCanvasStore((s) => s.setTool);
+  const setSelectedIcon = useCanvasStore((s) => s.setSelectedIcon);
+
+  const isActive = activeTool === "icon";
+
+  const handleSelectIcon = (iconId: string) => {
+    setSelectedIconId(iconId);
+    setSelectedIcon(iconId);
+    setTool("icon");
+    // Close picker after selection so user can click on canvas
+    setIsPickerOpen(false);
+  };
+
+  // Get button position for popup placement
+  const getAnchorPosition = () => {
+    if (buttonRef.current) {
+      const rect = buttonRef.current.getBoundingClientRect();
+      return { top: rect.top, left: rect.right + 12 };
+    }
+    return { top: 100, left: 80 };
+  };
+
+  return (
+    <>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <button
+            ref={buttonRef}
+            onClick={() => setIsPickerOpen(!isPickerOpen)}
+            className={cn(
+              "p-2 rounded-lg transition-colors",
+              isActive
+                ? "bg-blue-500/20 text-blue-400"
+                : "text-muted-foreground hover:bg-accent hover:text-foreground"
+            )}
+          >
+            <Shapes size={20} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="right" className="flex items-center gap-2">
+          <span>Icons</span>
+          <kbd className="px-1.5 py-0.5 text-xs bg-muted rounded">I</kbd>
+        </TooltipContent>
+      </Tooltip>
+      <IconPicker
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        onSelectIcon={handleSelectIcon}
+        selectedIconId={selectedIconId}
+        anchorPosition={getAnchorPosition()}
+      />
+    </>
+  );
+}
+
 export function CanvasToolbar({ className }: CanvasToolbarProps) {
   const zoom = useCanvasStore((s) => s.canvas.zoom);
   const showGrid = useCanvasStore((s) => s.canvas.showGrid);
@@ -127,6 +190,7 @@ export function CanvasToolbar({ className }: CanvasToolbarProps) {
           <ToolButton tool="freedraw" icon={<Pencil size={20} />} label="Draw" shortcut="P" />
           <ToolButton tool="eraser" icon={<Eraser size={20} />} label="Eraser" shortcut="E" />
           <ToolButton tool="text" icon={<Type size={20} />} label="Text" shortcut="T" />
+          <IconToolButton />
         </div>
 
         <div className="h-px bg-zinc-800 my-1" />

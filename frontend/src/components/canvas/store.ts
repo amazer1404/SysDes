@@ -35,23 +35,23 @@ function measureTextForStore(
     // SSR fallback
     return { width: 100, height: fontSize * lineHeight };
   }
-  
+
   const canvas = document.createElement("canvas");
   const ctx = canvas.getContext("2d");
   if (!ctx) return { width: 100, height: fontSize * lineHeight };
-  
+
   ctx.font = `${fontSize}px ${fontFamily}`;
-  
+
   const lines = text.split("\n");
   let maxWidth = 0;
-  
+
   for (const line of lines) {
     const metrics = ctx.measureText(line || " ");
     maxWidth = Math.max(maxWidth, metrics.width);
   }
-  
+
   const height = lines.length * fontSize * lineHeight;
-  
+
   return {
     width: Math.max(maxWidth + 8, 50), // Add padding, min width of 50
     height: Math.max(height, fontSize * lineHeight),
@@ -88,10 +88,12 @@ interface CanvasStore {
   historyIndex: number;
   clipboard: Shape[];
   clipboardOffset: number;
+  selectedIcon: string | null; // Currently selected icon ID for placing
 
   // Canvas Actions
   setTool: (tool: ToolType) => void;
   setStyle: (style: Partial<ShapeStyle>) => void;
+  setSelectedIcon: (iconId: string | null) => void;
   setZoom: (zoom: number) => void;
   setScroll: (scrollX: number, scrollY: number) => void;
   toggleGrid: () => void;
@@ -172,6 +174,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
   clipboardOffset: 0,
   history: [],
   historyIndex: -1,
+  selectedIcon: null,
 
   // ============================================
   // Canvas Actions
@@ -182,6 +185,10 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
       canvas: { ...get().canvas, activeTool: tool },
       interaction: { ...DEFAULT_INTERACTION_STATE },
     });
+  },
+
+  setSelectedIcon: (iconId) => {
+    set({ selectedIcon: iconId });
   },
 
   setStyle: (style) => {
@@ -489,6 +496,34 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
           pressures: [0.5],
         } as EraserShape;
         break;
+      case "icon": {
+        // Icons are placed immediately on click
+        const iconId = get().selectedIcon;
+        if (iconId) {
+          const iconSize = 64;
+          const iconShape: Shape = {
+            ...baseShape,
+            id: createShapeId(),
+            type: "icon",
+            iconId,
+            scale: 1,
+            x: point.x - iconSize / 2,
+            y: point.y - iconSize / 2,
+            width: iconSize,
+            height: iconSize,
+          } as Shape;
+          // Add immediately instead of drawing and select it
+          set({
+            canvas: {
+              ...get().canvas,
+              shapes: [...get().canvas.shapes, iconShape],
+              selectedIds: [iconShape.id],
+            },
+          });
+          get().saveToHistory();
+        }
+        return; // Don't set drawing mode for icons
+      }
     }
 
     set({
@@ -631,7 +666,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
             if (isPointInShape(worldPoint, s)) {
               return false; // Remove this shape
             }
-            
+
             // Also check with expanded bounds for near-misses
             const bounds = getShapeBounds(s);
             const expandedBounds = {
@@ -640,7 +675,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
               width: bounds.width + eraserRadius * 2,
               height: bounds.height + eraserRadius * 2,
             };
-            
+
             // Check if point is within expanded bounds and close to shape
             if (
               worldPoint.x >= expandedBounds.x &&
@@ -653,7 +688,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
                 for (let i = 0; i < s.points.length - 1; i++) {
                   const p1 = { x: s.x + s.points[i].x, y: s.y + s.points[i].y };
                   const p2 = { x: s.x + s.points[i + 1].x, y: s.y + s.points[i + 1].y };
-                  
+
                   // Calculate distance to line segment
                   const l2 = (p2.x - p1.x) ** 2 + (p2.y - p1.y) ** 2;
                   if (l2 === 0) {
@@ -662,22 +697,22 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
                     }
                     continue;
                   }
-                  
+
                   let t = ((worldPoint.x - p1.x) * (p2.x - p1.x) + (worldPoint.y - p1.y) * (p2.y - p1.y)) / l2;
                   t = Math.max(0, Math.min(1, t));
-                  
+
                   const dist = Math.sqrt(
                     (worldPoint.x - (p1.x + t * (p2.x - p1.x))) ** 2 +
                     (worldPoint.y - (p1.y + t * (p2.y - p1.y))) ** 2
                   );
-                  
+
                   if (dist < eraserRadius) {
                     return false; // Remove this shape
                   }
                 }
               }
             }
-            
+
             return true; // Keep the shape
           });
 
@@ -872,17 +907,17 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
     if (shapeIndex === -1) return;
 
     const currentShape = canvas.shapes[shapeIndex];
-    
+
     // Handle line/arrow endpoint dragging
     if ((currentShape.type === "line" || currentShape.type === "arrow") && lineEndpoint && "points" in currentShape) {
       const initialPoints = interaction.initialPoints;
       if (!initialPoints || initialPoints.length < 2) return;
-      
+
       const initial = interaction.initialBounds;
       let newPoints: Point[];
       let newX = initial.x;
       let newY = initial.y;
-      
+
       if (lineEndpoint === "start") {
         // Move start point - the shape position changes
         newX = point.x;
@@ -901,7 +936,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
           { x: point.x - initial.x, y: point.y - initial.y }, // New end point relative to origin
         ];
       }
-      
+
       // Calculate new bounds from points
       const xs = newPoints.map(p => p.x);
       const ys = newPoints.map(p => p.y);
@@ -909,7 +944,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
       const minY = Math.min(...ys);
       const maxX = Math.max(...xs);
       const maxY = Math.max(...ys);
-      
+
       const updatedShape = {
         ...currentShape,
         x: newX + minX,
@@ -919,7 +954,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
         points: newPoints.map(p => ({ x: p.x - minX, y: p.y - minY })),
         updatedAt: Date.now(),
       };
-      
+
       const newShapes = [...canvas.shapes];
       newShapes[shapeIndex] = updatedShape;
       set({ canvas: { ...canvas, shapes: newShapes } });
@@ -1026,7 +1061,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
       const scale = (scaleX + scaleY) / 2;
       // Calculate new font size based on initial, with no minimum restriction for full flexibility
       const newFontSize = Math.max(6, Math.round(initialFontSize * scale));
-      
+
       updatedShape = {
         ...shapeToResize,
         x,
@@ -1057,7 +1092,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
   finishResizing: () => {
     const state = get();
     const { canvas } = state;
-    
+
     // For text shapes, recalculate bounds to fit the text with the new font size
     if (canvas.selectedIds.length === 1) {
       const shapeIndex = canvas.shapes.findIndex((s) => s.id === canvas.selectedIds[0]);
@@ -1066,21 +1101,21 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
         if (shape.type === "text" && shape.text) {
           // Measure the text with the new font size
           const measured = measureTextForStore(shape.text, shape.fontSize, shape.fontFamily, shape.lineHeight);
-          
+
           const updatedShape = {
             ...shape,
             width: measured.width,
             height: measured.height,
             updatedAt: Date.now(),
           };
-          
+
           const newShapes = [...canvas.shapes];
           newShapes[shapeIndex] = updatedShape;
           set({ canvas: { ...canvas, shapes: newShapes } });
         }
       }
     }
-    
+
     set({ interaction: { ...DEFAULT_INTERACTION_STATE } });
     get().saveToHistory();
   },
@@ -1219,7 +1254,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
     if (!editingId) return;
 
     const trimmedText = text.trim();
-    
+
     if (trimmedText === "") {
       // Remove empty text shapes
       const newShapes = state.canvas.shapes.filter((s) => s.id !== editingId);
@@ -1231,12 +1266,12 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
       // Update the text content and optionally resize
       const newShapes = state.canvas.shapes.map((shape) => {
         if (shape.id === editingId && shape.type === "text") {
-          return { 
-            ...shape, 
-            text: trimmedText, 
+          return {
+            ...shape,
+            text: trimmedText,
             width: newWidth ?? shape.width,
             height: newHeight ?? shape.height,
-            updatedAt: Date.now() 
+            updatedAt: Date.now()
           };
         }
         return shape;
@@ -1367,7 +1402,7 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
 
   getShapeAtPoint: (point) => {
     const shapes = get().canvas.shapes;
-    
+
     // Find all shapes that contain the point
     const hitShapes: Shape[] = [];
     for (let i = shapes.length - 1; i >= 0; i--) {
@@ -1375,25 +1410,25 @@ export const useCanvasStore = create<CanvasStore>()((set, get) => ({
         hitShapes.push(shapes[i]);
       }
     }
-    
+
     if (hitShapes.length === 0) return null;
     if (hitShapes.length === 1) return hitShapes[0];
-    
+
     // Multiple shapes - prioritize by:
     // 1. Text shapes (highest priority - always selectable)
     // 2. Smaller shapes (by area)
     // 3. Z-order (shapes drawn later)
-    
+
     const textShape = hitShapes.find(s => s.type === "text");
     if (textShape) return textShape;
-    
+
     // Sort by area (smallest first) and return the smallest
     hitShapes.sort((a, b) => {
       const areaA = a.width * a.height;
       const areaB = b.width * b.height;
       return areaA - areaB;
     });
-    
+
     return hitShapes[0];
   },
 
